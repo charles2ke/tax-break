@@ -1,7 +1,10 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import crypto from 'crypto';
 import express, { NextFunction, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import session from 'express-session';
+import lusca from 'lusca';
 import {
   calculateAdvanceTax,
   calculateInternationalTax,
@@ -14,7 +17,6 @@ import { getEffectiveConfig, isKnownAssessmentYear } from './db/configRepository
 import { adminRouter } from './routes/admin';
 import { authRouter } from './routes/auth';
 import { taxReturnsRouter } from './routes/taxReturns';
-import { ensureCsrfCookie, verifyCsrfToken } from './security/csrf';
 import {
   ValidationError,
   validateAdvanceTaxInput,
@@ -26,6 +28,10 @@ import {
 const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173'];
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
+function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
+
 function getAllowedOrigins(): string[] {
   const configured = process.env.CORS_ALLOWED_ORIGINS;
   if (!configured) return DEFAULT_ALLOWED_ORIGINS;
@@ -36,11 +42,9 @@ function getAllowedOrigins(): string[] {
 }
 
 /**
- * Lightweight CSRF mitigation: since authentication is carried via a cookie, reject
- * state-changing requests (non-GET/HEAD/OPTIONS) whose Origin (or Referer, as a fallback for
- * clients that omit Origin) header is not one of the explicitly allowed origins. Combined with
- * the `SameSite=Lax` cookie attribute, this prevents cross-site requests from third-party pages
- * from performing authenticated actions on behalf of a logged-in user.
+ * Lightweight defense-in-depth CSRF mitigation: reject state-changing requests (non-GET/HEAD/
+ * OPTIONS) whose Origin (or Referer, as a fallback for clients that omit Origin) header is not
+ * one of the explicitly allowed origins. This complements the token-based CSRF protection below.
  */
 function csrfOriginCheck(allowedOrigins: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -53,6 +57,20 @@ function csrfOriginCheck(allowedOrigins: string[]) {
     }
     return next();
   };
+}
+
+function getSessionSecret(): string {
+  const configured = process.env.SESSION_SECRET;
+  if (configured) return configured;
+  if (isProduction()) {
+    throw new Error('SESSION_SECRET environment variable must be set in production');
+  }
+  // eslint-disable-next-line no-console
+  console.warn(
+    'SESSION_SECRET is not set. Using a random development secret; CSRF tokens will be ' +
+      'invalidated on every server restart. Set SESSION_SECRET in production.',
+  );
+  return crypto.randomBytes(32).toString('hex');
 }
 
 const authRateLimiter = rateLimit({
@@ -83,8 +101,26 @@ export function createApp() {
   app.use(express.json());
   app.use(cookieParser());
   app.use(csrfOriginCheck(allowedOrigins));
-  app.use(ensureCsrfCookie);
-  app.use(verifyCsrfToken);
+  // Session is used solely to store the CSRF token secret (double-submit cookie pattern via
+  // lusca); it does not carry authentication state, which continues to use the JWT cookie.
+  app.use(
+    session({
+      secret: getSessionSecret(),
+      resave: false,
+      saveUninitialized: true,
+      cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: isProduction(),
+      },
+    }),
+  );
+  app.use(
+    lusca.csrf({
+      header: 'x-csrf-token',
+      cookie: { name: 'tax_break_csrf', options: { httpOnly: false, sameSite: 'lax', secure: isProduction() } },
+    }),
+  );
   app.use(attachUser);
 
   app.get('/api/health', (_req: Request, res: Response) => {
@@ -140,6 +176,9 @@ export function createApp() {
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof ValidationError) {
       return res.status(400).json({ error: err.message });
+    }
+    if (err.message === 'CSRF token missing' || err.message === 'CSRF token mismatch') {
+      return res.status(403).json({ error: err.message });
     }
     // eslint-disable-next-line no-console
     console.error(err);

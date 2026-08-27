@@ -120,7 +120,8 @@ See `server/.env.example` for the full list with descriptions. Key variables:
 | `CORS_ALLOWED_ORIGINS`  | Comma-separated list of allowed origins.                                                              |
 | `DB_PATH`               | Path to the SQLite database file (default `server/data/tax-break.sqlite3`).                          |
 | `JWT_SECRET`            | Secret used to sign auth JWTs. **Required** in production; auto-generated per process in development. |
-| `NODE_ENV`              | Set to `production` to require `JWT_SECRET` and enable secure cookies.                                |
+| `SESSION_SECRET`        | Secret used to sign the CSRF session cookie (session holds no auth state). **Required** in production; auto-generated per process in development. |
+| `NODE_ENV`              | Set to `production` to require `JWT_SECRET`/`SESSION_SECRET` and enable secure cookies.               |
 
 ### Run the frontend client
 
