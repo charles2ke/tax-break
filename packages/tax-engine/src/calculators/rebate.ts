@@ -16,5 +16,5 @@ export function calculateRebate87A(taxableIncome: number, taxBeforeRebate: numbe
   if (!config.marginalRelief) return 0;
 
   const excessIncome = taxableIncome - config.incomeLimit;
-  return Math.max(0, Math.min(taxBeforeRebate, taxBeforeRebate - excessIncome));
+  return Math.max(0, taxBeforeRebate - excessIncome);
 }

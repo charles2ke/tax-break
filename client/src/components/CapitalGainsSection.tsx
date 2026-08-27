@@ -21,7 +21,8 @@ function formatRate(rate: number): string {
 
 export function CapitalGainsSection({ form, onChange }: Props) {
   const capitalGains = form.capitalGains;
-  const rates = getConfig(form.assessmentYear).capitalGains;
+  const config = getConfig(form.assessmentYear);
+  const rates = config.capitalGains;
 
   const update = (patch: Partial<FormState['capitalGains']>) =>
     onChange((f) => ({ ...f, capitalGains: { ...f.capitalGains, ...patch } }));
@@ -31,7 +32,7 @@ export function CapitalGainsSection({ form, onChange }: Props) {
       <h2 className="text-lg font-semibold text-slate-900">6. Capital Gains</h2>
       <p className="text-xs text-slate-500">
         Gains from selling shares, mutual funds, property, or other capital assets during the
-        year. Rates shown are the ones applicable to {getConfig(form.assessmentYear).label}.
+        year. Rates shown are the ones applicable to {config.label}.
       </p>
       <div className="grid gap-4 sm:grid-cols-2">
         <NumberField
