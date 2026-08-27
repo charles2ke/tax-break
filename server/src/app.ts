@@ -3,9 +3,25 @@ import express, { NextFunction, Request, Response } from 'express';
 import { compareRegimes, getConfig, listAssessmentYears } from '@tax-break/tax-engine';
 import { ValidationError, validateTaxCalculationInput } from './validation';
 
+const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173'];
+
+function getAllowedOrigins(): string[] {
+  const configured = process.env.CORS_ALLOWED_ORIGINS;
+  if (!configured) return DEFAULT_ALLOWED_ORIGINS;
+  return configured
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
 export function createApp() {
   const app = express();
-  app.use(cors());
+  const allowedOrigins = getAllowedOrigins();
+  app.use(
+    cors({
+      origin: allowedOrigins,
+    }),
+  );
   app.use(express.json());
 
   app.get('/api/health', (_req: Request, res: Response) => {

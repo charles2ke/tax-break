@@ -33,11 +33,10 @@ export function validateTaxCalculationInput(body: unknown): TaxCalculationInput 
 
   const input = body as Record<string, unknown>;
 
+  const validAssessmentYears = listAssessmentYears();
   const assessmentYear = input.assessmentYear as AssessmentYear;
-  if (!listAssessmentYears().includes(assessmentYear)) {
-    throw new ValidationError(
-      `assessmentYear must be one of: ${listAssessmentYears().join(', ')}`,
-    );
+  if (!validAssessmentYears.includes(assessmentYear)) {
+    throw new ValidationError(`assessmentYear must be one of: ${validAssessmentYears.join(', ')}`);
   }
 
   const ageCategory = input.ageCategory as AgeCategory;
