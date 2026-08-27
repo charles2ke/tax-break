@@ -4,6 +4,8 @@
 Old vs New Regime calculations for FY 2024-25 and FY 2025-26, plus resident individual income-tax
 estimates for Ireland, the Netherlands, the UK, the US, and Singapore.
 
+🔗 **Live website:** [https://charles2ke.github.io/tax-break/](https://charles2ke.github.io/tax-break/)
+
 > ⚠️ **Disclaimer:** This tool is for **informational and estimation purposes only**. It is **not**
 > a substitute for professional tax advice, a chartered accountant, or the official Income Tax
 > Department e-filing portal. Always verify your tax computation with a qualified professional or
@@ -23,7 +25,9 @@ estimates for Ireland, the Netherlands, the UK, the US, and Singapore.
 - Side-by-side Old vs New regime comparison with a recommendation and savings amount.
 - 2025 resident individual income-tax slab estimates for Ireland, the Netherlands, the UK, the US,
   and Singapore in their local currency, including Ireland's personal and employee (PAYE) tax
-  credits.
+  credits. The Dutch estimate uses Box 1 rates for taxpayers below the AOW age and applies the
+  general tax credit (algemene heffingskorting) and labour tax credit (arbeidskorting); the
+  Netherlands levies no provincial or municipal income tax.
 - Capital gains tax (equity/other STCG and LTCG, Sections 111A/112/112A) factored into the regime
   comparison.
 - Advance tax installment schedule (15%/45%/75%/100% due-date breakdown) with an estimate of
@@ -154,7 +158,8 @@ npm run lint
 The frontend is published from `client/dist` to GitHub Pages by
 `.github/workflows/pages.yml` on every push to `main`.
 
-- Live URL: `https://charles2ke.github.io/tax-break/`
+- Live URL: [https://charles2ke.github.io/tax-break/](https://charles2ke.github.io/tax-break/)
+- The deployment can also be re-run manually via the workflow's `workflow_dispatch` trigger.
 - Pages builds set:
   - `VITE_BASE_PATH=/tax-break/`
   - `VITE_CALCULATION_MODE=local`

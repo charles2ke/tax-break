@@ -21,13 +21,13 @@ export function SalarySection({ form, onChange }: Props) {
           label="Basic Salary (annual)"
           value={salary.basic}
           onChange={(v) => update({ basic: v })}
-          helpText="Basic pay plus dearness allowance for the year, as shown on your payslip."
+          helpText="Basic pay plus dearness allowance for the year, as shown on your salary slip."
         />
         <NumberField
           label="HRA Received (annual)"
           value={salary.hraReceived}
           onChange={(v) => update({ hraReceived: v })}
-          helpText="House Rent Allowance actually paid to you during the year."
+          helpText="House rent allowance actually received from your employer during the year."
         />
         <NumberField
           label="Rent Paid (annual)"
@@ -46,20 +46,20 @@ export function SalarySection({ form, onChange }: Props) {
             <option value="non-metro">Non-Metro</option>
           </select>
           <span className="mt-1 block text-xs text-slate-500">
-            Metro cities allow an HRA exemption of 50% of basic salary; other cities allow 40%.
+            City where you rent. Metro cities allow 50% of basic as HRA exemption, others 40%.
           </span>
         </label>
         <NumberField
           label="LTA (annual)"
           value={salary.lta}
           onChange={(v) => update({ lta: v })}
-          helpText="Leave Travel Allowance received. Included in salary income here; claim the exemption separately if eligible."
+          helpText="Leave travel allowance received. Treated as taxable salary unless you claim the exemption separately."
         />
         <NumberField
           label="Special Allowance (annual)"
           value={salary.specialAllowance}
           onChange={(v) => update({ specialAllowance: v })}
-          helpText="Any other fully taxable salary components, such as bonus or special allowance."
+          helpText="Any remaining fully taxable salary components, such as special or performance allowances."
         />
       </div>
     </section>

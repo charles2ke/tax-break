@@ -53,7 +53,7 @@ export function HousePropertySection({ form, onChange }: Props) {
               label="Municipal Taxes Paid"
               value={houseProperty.municipalTaxesPaid}
               onChange={(v) => update({ municipalTaxesPaid: v })}
-              helpText="Property tax actually paid to the local authority during the year; deducted from rent received."
+              helpText="Property tax actually paid to the local authority during the year; deducted from rent."
             />
           </>
         )}

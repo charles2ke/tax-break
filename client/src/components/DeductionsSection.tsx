@@ -45,38 +45,38 @@ export function DeductionsSection({ form, onChange }: Props) {
           onChange={(v) => update80D({ selfAndFamilyPremium: v })}
           helpText="Max ₹25,000 (₹50,000 if you are a senior citizen)."
         />
-        <label className="flex items-center gap-2 self-end pb-2">
-          <input
-            type="checkbox"
-            checked={deductions.section80D.selfSenior}
-            onChange={(e) => update80D({ selfSenior: e.target.checked })}
-          />
-          <span className="text-sm text-slate-700">
-            I am a senior citizen (60+)
-            <span className="block text-xs text-slate-500">
-              Raises your own 80D limit from ₹25,000 to ₹50,000.
-            </span>
+        <div className="self-end pb-2">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={deductions.section80D.selfSenior}
+              onChange={(e) => update80D({ selfSenior: e.target.checked })}
+            />
+            <span className="text-sm text-slate-700">I am a senior citizen (60+)</span>
+          </label>
+          <span className="mt-1 block text-xs text-slate-500">
+            Tick to raise your own 80D limit from ₹25,000 to ₹50,000.
           </span>
-        </label>
+        </div>
         <NumberField
           label="80D - Health Insurance (Parents)"
           value={deductions.section80D.parentsPremium}
           onChange={(v) => update80D({ parentsPremium: v })}
           helpText="Max ₹25,000 (₹50,000 if parents are senior citizens)."
         />
-        <label className="flex items-center gap-2 self-end pb-2">
-          <input
-            type="checkbox"
-            checked={deductions.section80D.parentsSenior}
-            onChange={(e) => update80D({ parentsSenior: e.target.checked })}
-          />
-          <span className="text-sm text-slate-700">
-            Parents are senior citizens (60+)
-            <span className="block text-xs text-slate-500">
-              Raises the 80D limit for parents from ₹25,000 to ₹50,000.
-            </span>
+        <div className="self-end pb-2">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={deductions.section80D.parentsSenior}
+              onChange={(e) => update80D({ parentsSenior: e.target.checked })}
+            />
+            <span className="text-sm text-slate-700">Parents are senior citizens (60+)</span>
+          </label>
+          <span className="mt-1 block text-xs text-slate-500">
+            Tick to raise the parents' 80D limit from ₹25,000 to ₹50,000.
           </span>
-        </label>
+        </div>
         <NumberField
           label="80TTA / 80TTB - Savings Interest"
           value={

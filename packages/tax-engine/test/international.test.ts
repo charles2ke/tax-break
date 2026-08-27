@@ -36,4 +36,31 @@ describe('calculateInternationalTax', () => {
       calculateInternationalTax({ country, annualIncome: 100000 }).totalTaxLiability,
     ).toBeGreaterThan(0);
   });
+
+  it('applies the Dutch general and labour tax credits for a mid income', () => {
+    const result = calculateInternationalTax({ country: 'netherlands', annualIncome: 45000 });
+    // Box 1: 38,441 x 35.82% + 6,559 x 37.48% = 13,769.56 + 2,458.32 = 16,227.88
+    expect(result.incomeTax).toBeCloseTo(16227.88, 2);
+    // General credit: 3,068 - 6.337% x (45,000 - 28,406) = 2,016.44
+    // Labour credit: 5,599 - 6.510% x (45,000 - 43,071) = 5,473.42
+    expect(result.taxCredits).toBeCloseTo(7489.86, 2);
+    expect(result.totalTaxLiability).toBeCloseTo(8738.02, 2);
+    expect(result.effectiveTaxRate).toBeCloseTo(19.42, 2);
+  });
+
+  it('phases out the Dutch tax credits at high incomes', () => {
+    const result = calculateInternationalTax({ country: 'netherlands', annualIncome: 150000 });
+    expect(result.taxCredits).toBe(0);
+    expect(result.totalTaxLiability).toBe(result.incomeTax);
+  });
+
+  it('never lets the Dutch tax credits create a refund', () => {
+    const result = calculateInternationalTax({ country: 'netherlands', annualIncome: 8000 });
+    expect(result.taxCredits).toBe(result.incomeTax);
+    expect(result.totalTaxLiability).toBe(0);
+  });
+
+  it('reports no tax credits for countries where they are not modelled', () => {
+    expect(calculateInternationalTax({ country: 'uk', annualIncome: 50000 }).taxCredits).toBe(0);
+  });
 });

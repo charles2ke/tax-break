@@ -38,7 +38,7 @@ export function BasicInfoSection({ form, onChange }: Props) {
             ))}
           </select>
           <span className="mt-1 block text-xs text-slate-500">
-            The financial year your income was earned in. Slab rates and limits differ per year.
+            The financial year the income was earned in. Slab rates and limits differ per year.
           </span>
         </label>
         <label className="block">

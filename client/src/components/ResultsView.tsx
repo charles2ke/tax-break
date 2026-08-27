@@ -232,8 +232,12 @@ function InternationalResultsView({
       </dl>
       <p className="mt-8 text-xs text-slate-400">
         This resident-individual estimate excludes payroll/social-security contributions (such as
-        Irish USC and PRSI), allowances, and local taxes. Confirm your return with the official
-        filing service or a qualified professional.
+        Irish USC and PRSI), local taxes, and other country-specific reliefs. It only applies tax
+        credits where they are shown above.
+        {result.country === 'netherlands' &&
+          ' The Netherlands has no provincial or municipal income tax; Box 1 rates for taxpayers' +
+            ' below the AOW age are used, including the general and labour tax credits.'}{' '}
+        Confirm your return with the official filing service or a qualified professional.
       </p>
     </div>
   );

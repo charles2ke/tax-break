@@ -4,13 +4,40 @@ import { InternationalTaxCalculationInput, InternationalTaxResult, SlabBracket }
 interface CountryTaxConfig {
   currency: string;
   standardDeduction: number;
-  /** Non-refundable credits deducted from the computed income tax. */
-  taxCredits: number;
   slabs: SlabBracket[];
+  /**
+   * Non-refundable tax credits (in local currency) that reduce the bracket tax. Credits may be
+   * fixed or computed from taxable income when they are a standard, automatic part of the
+   * individual assessment.
+   */
+  taxCredits: number | ((taxableIncome: number) => number);
 }
 
-// 2025 resident individual income-tax rates. This estimator excludes payroll/social-security
-// contributions (e.g. Irish USC/PRSI), local taxes, and other country-specific reliefs.
+/**
+ * Dutch general tax credit (algemene heffingskorting) for taxpayers below the AOW (state pension)
+ * age, 2025 amounts: EUR 3,068 up to EUR 28,406 of income, then tapered at 6.337% and fully phased
+ * out from EUR 76,817.
+ */
+function dutchGeneralTaxCredit(income: number): number {
+  if (income <= 28406) return 3068;
+  if (income >= 76817) return 0;
+  return Math.max(0, 3068 - 0.06337 * (income - 28406));
+}
+
+/**
+ * Dutch labour tax credit (arbeidskorting) for taxpayers below the AOW age, 2025 amounts. The
+ * estimator treats the whole income as employment income (arbeidsinkomen).
+ */
+function dutchLabourTaxCredit(income: number): number {
+  if (income <= 12169) return 0.08053 * income;
+  if (income <= 26288) return 980 + 0.3003 * (income - 12169);
+  if (income <= 43071) return 5220 + 0.02258 * (income - 26288);
+  if (income >= 129078) return 0;
+  return Math.max(0, 5599 - 0.0651 * (income - 43071));
+}
+
+// 2025 resident individual income-tax rates. Unless noted per country, this estimator excludes
+// payroll/social-security contributions, local taxes, and other country-specific reliefs.
 const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], CountryTaxConfig> = {
   ireland: {
     currency: 'EUR',
@@ -23,15 +50,20 @@ const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], Count
       { from: 44000, to: null, rate: 0.4 },
     ],
   },
+  // The Netherlands levies income tax only at national level: there is no provincial or municipal
+  // income tax, so no regional add-on applies. Box 1 (work and home) rates below are for taxpayers
+  // under the AOW age and already include national social-security contributions in the first two
+  // brackets. The general and labour tax credits are applied as non-refundable credits.
   netherlands: {
     currency: 'EUR',
     standardDeduction: 0,
-    taxCredits: 0,
     slabs: [
       { from: 0, to: 38441, rate: 0.3582 },
       { from: 38441, to: 76817, rate: 0.3748 },
       { from: 76817, to: null, rate: 0.495 },
     ],
+    taxCredits: (taxableIncome) =>
+      dutchGeneralTaxCredit(taxableIncome) + dutchLabourTaxCredit(taxableIncome),
   },
   uk: {
     currency: 'GBP',
@@ -86,7 +118,9 @@ export function calculateInternationalTax(
   const taxableIncome = grossIncome - standardDeduction;
   const incomeTax = Math.round(calculateSlabTax(taxableIncome, config.slabs) * 100) / 100;
   // Credits are non-refundable: they can reduce the liability to zero but never below it.
-  const taxCredits = Math.min(incomeTax, config.taxCredits);
+  const configuredTaxCredits =
+    typeof config.taxCredits === 'function' ? config.taxCredits(taxableIncome) : config.taxCredits;
+  const taxCredits = Math.round(Math.min(incomeTax, configuredTaxCredits) * 100) / 100;
   const totalTaxLiability = Math.round((incomeTax - taxCredits) * 100) / 100;
 
   return {
