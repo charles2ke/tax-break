@@ -69,6 +69,10 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
           <option value="us">United States</option>
           <option value="singapore">Singapore</option>
         </select>
+        <span className="mt-1 block text-xs text-slate-500">
+          Pick the country whose income-tax rules should apply. India gives a full Old vs New Regime
+          comparison; other countries give a simplified resident estimate.
+        </span>
       </label>
 
       {country === 'india' ? (

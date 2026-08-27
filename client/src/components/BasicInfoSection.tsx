@@ -37,6 +37,9 @@ export function BasicInfoSection({ form, onChange }: Props) {
               </option>
             ))}
           </select>
+          <span className="mt-1 block text-xs text-slate-500">
+            The financial year your income was earned in. FY 2024-25 is filed in AY 2025-26.
+          </span>
         </label>
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Age Category</span>
@@ -51,6 +54,10 @@ export function BasicInfoSection({ form, onChange }: Props) {
               </option>
             ))}
           </select>
+          <span className="mt-1 block text-xs text-slate-500">
+            Your age on the last day of the financial year. Senior citizens get higher Old Regime
+            exemption limits.
+          </span>
         </label>
       </div>
     </section>

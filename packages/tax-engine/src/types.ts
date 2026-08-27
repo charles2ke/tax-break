@@ -82,10 +82,23 @@ export interface TaxCalculationInput {
   taxAlreadyPaid?: number;
 }
 
+/** Two-letter postal codes for the 50 US states plus the District of Columbia. */
+export type UsState =
+  | 'AL' | 'AK' | 'AZ' | 'AR' | 'CA' | 'CO' | 'CT' | 'DE' | 'DC' | 'FL'
+  | 'GA' | 'HI' | 'ID' | 'IL' | 'IN' | 'IA' | 'KS' | 'KY' | 'LA' | 'ME'
+  | 'MD' | 'MA' | 'MI' | 'MN' | 'MS' | 'MO' | 'MT' | 'NE' | 'NV' | 'NH'
+  | 'NJ' | 'NM' | 'NY' | 'NC' | 'ND' | 'OH' | 'OK' | 'OR' | 'PA' | 'RI'
+  | 'SC' | 'SD' | 'TN' | 'TX' | 'UT' | 'VT' | 'VA' | 'WA' | 'WV' | 'WI' | 'WY';
+
 export interface InternationalTaxCalculationInput {
   country: Exclude<TaxCountry, 'india'>;
   /** Annual gross income in the country's local currency. */
   annualIncome: number;
+  /**
+   * US only: state of residence, used to estimate state income tax on top of the federal
+   * liability. Omit for a federal-only estimate.
+   */
+  state?: UsState;
 }
 
 export interface InternationalTaxResult {
@@ -94,7 +107,14 @@ export interface InternationalTaxResult {
   grossIncome: number;
   standardDeduction: number;
   taxableIncome: number;
+  /** National (for the US, federal) income tax. */
   incomeTax: number;
+  /** US only: the state of residence the state tax was estimated for. */
+  state?: UsState;
+  /** US only: estimated state income tax. */
+  stateTax?: number;
+  /** US only: income subject to state income tax after the state deduction/exemption. */
+  stateTaxableIncome?: number;
   totalTaxLiability: number;
   effectiveTaxRate: number;
 }

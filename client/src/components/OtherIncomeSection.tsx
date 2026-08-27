@@ -20,21 +20,25 @@ export function OtherIncomeSection({ form, onChange }: Props) {
           label="Savings Bank Interest"
           value={otherIncome.savingsInterest}
           onChange={(v) => update({ savingsInterest: v })}
+          helpText="Interest credited to your savings bank accounts; eligible for the 80TTA/80TTB deduction."
         />
         <NumberField
           label="Fixed Deposit / Other Interest"
           value={otherIncome.otherInterest}
           onChange={(v) => update({ otherInterest: v })}
+          helpText="Interest from fixed deposits, recurring deposits, bonds, and similar sources."
         />
         <NumberField
           label="Dividend Income"
           value={otherIncome.dividendIncome}
           onChange={(v) => update({ dividendIncome: v })}
+          helpText="Dividends from shares and mutual funds, taxed at your slab rate."
         />
         <NumberField
           label="Other Income"
           value={otherIncome.otherIncome}
           onChange={(v) => update({ otherIncome: v })}
+          helpText="Any other taxable income, such as gifts, family pension, or freelance receipts."
         />
       </div>
     </section>
