@@ -73,6 +73,14 @@ function getSessionSecret(): string {
   return crypto.randomBytes(32).toString('hex');
 }
 
+const globalRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 600,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please try again later.' },
+});
+
 const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 20,
@@ -121,6 +129,7 @@ export function createApp() {
       cookie: { name: 'tax_break_csrf', options: { httpOnly: false, sameSite: 'lax', secure: isProduction() } },
     }),
   );
+  app.use(globalRateLimiter);
   app.use(attachUser);
 
   app.get('/api/health', (_req: Request, res: Response) => {
