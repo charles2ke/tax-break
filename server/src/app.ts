@@ -1,14 +1,23 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import {
+  calculateAdvanceTax,
   calculateInternationalTax,
   compareRegimes,
-  getConfig,
   listAssessmentYears,
+  recommendItrForm,
 } from '@tax-break/tax-engine';
+import { attachUser } from './auth/middleware';
+import { getEffectiveConfig, isKnownAssessmentYear } from './db/configRepository';
+import { adminRouter } from './routes/admin';
+import { authRouter } from './routes/auth';
+import { taxReturnsRouter } from './routes/taxReturns';
 import {
   ValidationError,
+  validateAdvanceTaxInput,
   validateInternationalTaxCalculationInput,
+  validateItrRecommenderInput,
   validateTaxCalculationInput,
 } from './validation';
 
@@ -29,9 +38,12 @@ export function createApp() {
   app.use(
     cors({
       origin: allowedOrigins,
+      credentials: true,
     }),
   );
   app.use(express.json());
+  app.use(cookieParser());
+  app.use(attachUser);
 
   app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok' });
@@ -39,12 +51,12 @@ export function createApp() {
 
   app.get('/api/config/:assessmentYear', (req: Request, res: Response) => {
     const { assessmentYear } = req.params;
-    if (!listAssessmentYears().includes(assessmentYear as never)) {
+    if (!isKnownAssessmentYear(assessmentYear)) {
       return res.status(404).json({
         error: `Unknown assessment year: ${assessmentYear}. Supported: ${listAssessmentYears().join(', ')}`,
       });
     }
-    const config = getConfig(assessmentYear as never);
+    const config = getEffectiveConfig(assessmentYear);
     return res.json(config);
   });
 
@@ -55,9 +67,32 @@ export function createApp() {
       );
     }
     const input = validateTaxCalculationInput(req.body);
-    const result = compareRegimes(input);
+    const configOverride = isKnownAssessmentYear(input.assessmentYear)
+      ? getEffectiveConfig(input.assessmentYear)
+      : undefined;
+    const result = compareRegimes(input, configOverride);
     return res.json(result);
   });
+
+  app.post('/api/advance-tax', (req: Request, res: Response) => {
+    const input = validateAdvanceTaxInput(req.body);
+    const result = calculateAdvanceTax(
+      input.totalTaxLiability,
+      input.taxAlreadyPaid,
+      input.assessmentYear,
+    );
+    return res.json(result);
+  });
+
+  app.post('/api/itr-recommendation', (req: Request, res: Response) => {
+    const input = validateItrRecommenderInput(req.body);
+    const result = recommendItrForm(input);
+    return res.json(result);
+  });
+
+  app.use('/api/auth', authRouter);
+  app.use('/api/tax-returns', taxReturnsRouter);
+  app.use('/api/admin', adminRouter);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
@@ -71,3 +106,4 @@ export function createApp() {
 
   return app;
 }
+

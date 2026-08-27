@@ -1,13 +1,16 @@
-import { RegimeComparisonResult, TaxCalculationInput } from '../types';
+import { RegimeComparisonResult, AssessmentYearConfig, TaxCalculationInput } from '../types';
 import { calculateTaxForRegime } from './regime';
 
 /**
  * Computes tax under both Old and New regimes for the same input and determines
  * which regime is more beneficial along with the savings amount.
  */
-export function compareRegimes(input: TaxCalculationInput): RegimeComparisonResult {
-  const oldRegime = calculateTaxForRegime(input, 'old');
-  const newRegime = calculateTaxForRegime(input, 'new');
+export function compareRegimes(
+  input: TaxCalculationInput,
+  configOverride?: AssessmentYearConfig,
+): RegimeComparisonResult {
+  const oldRegime = calculateTaxForRegime(input, 'old', configOverride);
+  const newRegime = calculateTaxForRegime(input, 'new', configOverride);
 
   const recommendedRegime = newRegime.totalTaxLiability <= oldRegime.totalTaxLiability ? 'new' : 'old';
   const savings = Math.abs(oldRegime.totalTaxLiability - newRegime.totalTaxLiability);

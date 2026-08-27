@@ -1,5 +1,6 @@
 import { getConfig } from '../config';
 import {
+  AssessmentYearConfig,
   DeductionsBreakdown,
   Regime,
   TaxBreakdown,
@@ -58,10 +59,16 @@ function calculateGrossIncome(
 }
 
 /**
- * Computes a full tax breakdown for a single regime.
+ * Computes a full tax breakdown for a single regime. An explicit `configOverride` can be
+ * supplied (e.g. by an admin-configured slab/deduction override) instead of the built-in
+ * versioned config for the assessment year.
  */
-export function calculateTaxForRegime(input: TaxCalculationInput, regime: Regime): TaxBreakdown {
-  const config = getConfig(input.assessmentYear);
+export function calculateTaxForRegime(
+  input: TaxCalculationInput,
+  regime: Regime,
+  configOverride?: AssessmentYearConfig,
+): TaxBreakdown {
+  const config = configOverride ?? getConfig(input.assessmentYear);
   const regimeConfig = config[regime];
 
   const capitalGains = calculateCapitalGains(input.capitalGains);
