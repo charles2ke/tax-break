@@ -14,6 +14,7 @@ import { getEffectiveConfig, isKnownAssessmentYear } from './db/configRepository
 import { adminRouter } from './routes/admin';
 import { authRouter } from './routes/auth';
 import { taxReturnsRouter } from './routes/taxReturns';
+import { ensureCsrfCookie, verifyCsrfToken } from './security/csrf';
 import {
   ValidationError,
   validateAdvanceTaxInput,
@@ -62,6 +63,14 @@ const authRateLimiter = rateLimit({
   message: { error: 'Too many authentication attempts. Please try again later.' },
 });
 
+const apiRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please try again later.' },
+});
+
 export function createApp() {
   const app = express();
   const allowedOrigins = getAllowedOrigins();
@@ -74,6 +83,8 @@ export function createApp() {
   app.use(express.json());
   app.use(cookieParser());
   app.use(csrfOriginCheck(allowedOrigins));
+  app.use(ensureCsrfCookie);
+  app.use(verifyCsrfToken);
   app.use(attachUser);
 
   app.get('/api/health', (_req: Request, res: Response) => {
@@ -122,8 +133,8 @@ export function createApp() {
   });
 
   app.use('/api/auth', authRateLimiter, authRouter);
-  app.use('/api/tax-returns', taxReturnsRouter);
-  app.use('/api/admin', adminRouter);
+  app.use('/api/tax-returns', apiRateLimiter, taxReturnsRouter);
+  app.use('/api/admin', apiRateLimiter, adminRouter);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

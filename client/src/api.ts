@@ -27,11 +27,26 @@ async function parseJsonOrThrow<T>(response: Response): Promise<T> {
   return (await response.json()) as T;
 }
 
+const CSRF_COOKIE_NAME = 'tax_break_csrf';
+
+function readCookie(name: string): string | undefined {
+  const match = document.cookie
+    .split('; ')
+    .find((row) => row.startsWith(`${name}=`));
+  return match ? decodeURIComponent(match.split('=').slice(1).join('=')) : undefined;
+}
+
 function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method ?? 'GET').toUpperCase();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (method !== 'GET' && method !== 'HEAD') {
+    const csrfToken = readCookie(CSRF_COOKIE_NAME);
+    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+  }
   return fetch(path, {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
     ...init,
+    headers: { ...headers, ...init?.headers },
   }).then(parseJsonOrThrow<T>);
 }
 
