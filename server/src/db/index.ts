@@ -9,12 +9,15 @@ import Database from 'better-sqlite3';
  */
 function resolveDbPath(): string {
   const configured = process.env.DB_PATH;
-  if (configured) return configured;
-  const dataDir = path.join(__dirname, '..', '..', 'data');
+  if (configured === ':memory:') return configured;
+  const resolved = configured
+    ? path.resolve(process.cwd(), configured)
+    : path.join(__dirname, '..', '..', 'data', 'tax-break.sqlite3');
+  const dataDir = path.dirname(resolved);
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
-  return path.join(dataDir, 'tax-break.sqlite3');
+  return resolved;
 }
 
 let dbInstance: Database.Database | undefined;
