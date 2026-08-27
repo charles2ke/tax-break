@@ -9,8 +9,8 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         Tax Break
       </h1>
       <p className="mt-4 text-lg text-slate-600">
-        Estimate your Indian Annual Income Tax in minutes. Compare the Old Regime and the New
-        Regime side-by-side and find out which one saves you more money.
+        Estimate your annual individual income tax in minutes. Compare India&apos;s Old and New
+        Regimes or get an estimate for Ireland, the Netherlands, the UK, the US, or Singapore.
       </p>
       <ul className="mt-8 grid gap-3 text-left text-sm text-slate-700 sm:grid-cols-2">
         <li className="rounded-lg bg-slate-50 p-4 shadow-sm">
@@ -24,6 +24,9 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         </li>
         <li className="rounded-lg bg-slate-50 p-4 shadow-sm">
           ⚖️ Automatic Old vs New regime comparison with recommendation
+        </li>
+        <li className="rounded-lg bg-slate-50 p-4 shadow-sm">
+          🌍 Individual income-tax estimates for Ireland, Netherlands, UK, US, and Singapore
         </li>
       </ul>
       <button

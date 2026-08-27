@@ -1,8 +1,15 @@
-import type { RegimeComparisonResult, TaxCalculationInput } from '@tax-break/tax-engine';
+import type {
+  InternationalTaxCalculationInput,
+  InternationalTaxResult,
+  RegimeComparisonResult,
+  TaxCalculationInput,
+} from '@tax-break/tax-engine';
 
 export class ApiError extends Error {}
 
-export async function calculateTax(input: TaxCalculationInput): Promise<RegimeComparisonResult> {
+export async function calculateTax(
+  input: TaxCalculationInput | InternationalTaxCalculationInput,
+): Promise<RegimeComparisonResult | InternationalTaxResult> {
   const response = await fetch('/api/calculate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -14,5 +21,5 @@ export async function calculateTax(input: TaxCalculationInput): Promise<RegimeCo
     throw new ApiError(body.error ?? 'Failed to calculate tax');
   }
 
-  return (await response.json()) as RegimeComparisonResult;
+  return (await response.json()) as RegimeComparisonResult | InternationalTaxResult;
 }

@@ -1,20 +1,23 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import type { RegimeComparisonResult } from '@tax-break/tax-engine';
+import type { InternationalTaxResult, RegimeComparisonResult } from '@tax-break/tax-engine';
 
 interface Props {
-  result: RegimeComparisonResult;
+  result: RegimeComparisonResult | InternationalTaxResult;
   onBack: () => void;
 }
 
-function formatCurrency(amount: number): string {
+function formatCurrency(amount: number, currency = 'INR'): string {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'INR',
+    currency,
     maximumFractionDigits: 0,
   }).format(amount);
 }
 
 export function ResultsView({ result, onBack }: Props) {
+  if ('country' in result) {
+    return <InternationalResultsView result={result} onBack={onBack} />;
+  }
   const { old: oldRegime, new: newRegime, recommendedRegime, savings } = result;
 
   const chartData = [
@@ -99,6 +102,32 @@ export function ResultsView({ result, onBack }: Props) {
       </p>
     </div>
   );
+}
+
+function InternationalResultsView({ result, onBack }: { result: InternationalTaxResult; onBack: () => void }) {
+  const country = result.country === 'uk' ? 'United Kingdom' : result.country.replace(/^\w/, (c) => c.toUpperCase());
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-10">
+      <button type="button" onClick={onBack} className="mb-6 text-sm font-medium text-indigo-600 hover:underline">
+        ← Back to form
+      </button>
+      <h1 className="text-2xl font-bold text-slate-900">{country} income tax estimate</h1>
+      <dl className="mt-6 divide-y rounded-lg border border-slate-200 bg-white px-5">
+        <InternationalRow label="Gross annual income" value={result.grossIncome} currency={result.currency} />
+        <InternationalRow label="Standard deduction" value={result.standardDeduction} currency={result.currency} />
+        <InternationalRow label="Taxable income" value={result.taxableIncome} currency={result.currency} />
+        <InternationalRow label="Estimated income tax" value={result.totalTaxLiability} currency={result.currency} strong />
+        <InternationalRow label="Effective tax rate" value={result.effectiveTaxRate} suffix="%" />
+      </dl>
+      <p className="mt-8 text-xs text-slate-400">
+        This resident-individual estimate excludes payroll/social-security contributions, tax credits, allowances, and local taxes. Confirm your return with the official filing service or a qualified professional.
+      </p>
+    </div>
+  );
+}
+
+function InternationalRow({ label, value, currency, suffix, strong = false }: { label: string; value: number; currency?: string; suffix?: string; strong?: boolean }) {
+  return <div className={`flex justify-between py-3 ${strong ? 'font-semibold text-slate-900' : 'text-slate-700'}`}><dt>{label}</dt><dd>{suffix ? `${value.toFixed(2)}${suffix}` : formatCurrency(value, currency)}</dd></div>;
 }
 
 function Row({

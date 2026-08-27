@@ -1,8 +1,15 @@
-import { AgeCategory, AssessmentYear, listAssessmentYears, TaxCalculationInput } from '@tax-break/tax-engine';
+import {
+  AgeCategory,
+  AssessmentYear,
+  InternationalTaxCalculationInput,
+  listAssessmentYears,
+  TaxCalculationInput,
+} from '@tax-break/tax-engine';
 
 const VALID_AGE_CATEGORIES: AgeCategory[] = ['below60', '60to80', 'above80'];
 const VALID_CITY_TYPES = ['metro', 'non-metro'];
 const VALID_HOUSE_PROPERTY_TYPES = ['self-occupied', 'let-out'];
+const VALID_INTERNATIONAL_COUNTRIES = ['ireland', 'netherlands', 'uk', 'us', 'singapore'];
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -29,6 +36,22 @@ function assertNonNegativeNumber(value: unknown, field: string): void {
 export function validateTaxCalculationInput(body: unknown): TaxCalculationInput {
   if (typeof body !== 'object' || body === null) {
     throw new ValidationError('Request body must be an object');
+  }
+
+  export function validateInternationalTaxCalculationInput(body: unknown): InternationalTaxCalculationInput {
+    if (typeof body !== 'object' || body === null) {
+      throw new ValidationError('Request body must be an object');
+    }
+
+    const input = body as Record<string, unknown>;
+    if (!VALID_INTERNATIONAL_COUNTRIES.includes(input.country as string)) {
+      throw new ValidationError(`country must be one of: ${VALID_INTERNATIONAL_COUNTRIES.join(', ')}`);
+    }
+    if (!isNonNegativeNumber(input.annualIncome)) {
+      throw new ValidationError('annualIncome must be a non-negative number');
+    }
+
+    return input as unknown as InternationalTaxCalculationInput;
   }
 
   const input = body as Record<string, unknown>;

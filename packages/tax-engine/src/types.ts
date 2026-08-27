@@ -1,5 +1,7 @@
 export type AssessmentYear = 'FY2024-25' | 'FY2025-26';
 
+export type TaxCountry = 'india' | 'ireland' | 'netherlands' | 'uk' | 'us' | 'singapore';
+
 export type AgeCategory = 'below60' | '60to80' | 'above80';
 
 export type Regime = 'old' | 'new';
@@ -62,6 +64,23 @@ export interface TaxCalculationInput {
   houseProperty?: HousePropertyInput;
   otherIncome?: OtherIncomeInput;
   deductions?: DeductionsInput;
+}
+
+export interface InternationalTaxCalculationInput {
+  country: Exclude<TaxCountry, 'india'>;
+  /** Annual gross income in the country's local currency. */
+  annualIncome: number;
+}
+
+export interface InternationalTaxResult {
+  country: Exclude<TaxCountry, 'india'>;
+  currency: string;
+  grossIncome: number;
+  standardDeduction: number;
+  taxableIncome: number;
+  incomeTax: number;
+  totalTaxLiability: number;
+  effectiveTaxRate: number;
 }
 
 export interface SlabBracket {
