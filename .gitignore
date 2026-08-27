@@ -9,3 +9,7 @@ coverage/
 .vscode/
 .idea/
 *.tsbuildinfo
+server/data/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm

@@ -1,10 +1,12 @@
 import { getConfig } from '../config';
 import {
+  AssessmentYearConfig,
   DeductionsBreakdown,
   Regime,
   TaxBreakdown,
   TaxCalculationInput,
 } from '../types';
+import { calculateCapitalGains } from './capitalGains';
 import { calculateDeductions } from './deductions';
 import { calculateHouseProperty } from './houseProperty';
 import { calculateHraExemption } from './hra';
@@ -16,6 +18,7 @@ function calculateGrossIncome(
   input: TaxCalculationInput,
   homeLoanInterestCap: number,
   regime: Regime,
+  otherSTCG: number,
 ): { grossTotalIncome: number } {
   let salaryIncome = 0;
   if (input.salary) {
@@ -49,22 +52,32 @@ function calculateGrossIncome(
     Math.max(0, otherIncome?.dividendIncome ?? 0) +
     Math.max(0, otherIncome?.otherIncome ?? 0);
 
-  const grossTotalIncome = salaryIncome + houseProperty.incomeFromHouseProperty + otherIncomeTotal;
+  const grossTotalIncome =
+    salaryIncome + houseProperty.incomeFromHouseProperty + otherIncomeTotal + otherSTCG;
 
   return { grossTotalIncome };
 }
 
 /**
- * Computes a full tax breakdown for a single regime.
+ * Computes a full tax breakdown for a single regime. An explicit `configOverride` can be
+ * supplied (e.g. by an admin-configured slab/deduction override) instead of the built-in
+ * versioned config for the assessment year.
  */
-export function calculateTaxForRegime(input: TaxCalculationInput, regime: Regime): TaxBreakdown {
-  const config = getConfig(input.assessmentYear);
+export function calculateTaxForRegime(
+  input: TaxCalculationInput,
+  regime: Regime,
+  configOverride?: AssessmentYearConfig,
+): TaxBreakdown {
+  const config = configOverride ?? getConfig(input.assessmentYear);
   const regimeConfig = config[regime];
+
+  const capitalGains = calculateCapitalGains(input.capitalGains);
 
   const { grossTotalIncome } = calculateGrossIncome(
     input,
     config.homeLoanInterestCap.selfOccupied,
     regime,
+    capitalGains.otherSTCGAddedToIncome,
   );
 
   const deductionsBreakdown: DeductionsBreakdown = calculateDeductions(
@@ -93,7 +106,13 @@ export function calculateTaxForRegime(input: TaxCalculationInput, regime: Regime
 
   const taxPlusSurcharge = taxAfterRebate + surcharge;
   const cess = taxPlusSurcharge * regimeConfig.cessRate;
-  const totalTaxLiability = Math.round(taxPlusSurcharge + cess);
+
+  // Capital gains taxed under Sections 111A/112/112A are taxed at flat/special rates outside
+  // the slab computation above; they are still subject to health & education cess.
+  const capitalGainsCess = capitalGains.totalCapitalGainsTax * regimeConfig.cessRate;
+  const capitalGainsTaxWithCess = capitalGains.totalCapitalGainsTax + capitalGainsCess;
+
+  const totalTaxLiability = Math.round(taxPlusSurcharge + cess + capitalGainsTaxWithCess);
 
   const effectiveTaxRate = grossTotalIncome > 0 ? (totalTaxLiability / grossTotalIncome) * 100 : 0;
 
@@ -109,6 +128,7 @@ export function calculateTaxForRegime(input: TaxCalculationInput, regime: Regime
     surcharge,
     marginalRelief,
     cess,
+    capitalGains,
     totalTaxLiability,
     effectiveTaxRate,
   };

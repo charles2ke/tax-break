@@ -183,4 +183,41 @@ describe('calculateTaxForRegime', () => {
     expect(withResult.taxableIncome).toBe(withoutResult.taxableIncome - 200000);
     expect(withResult.totalTaxLiability).toBeLessThan(withoutResult.totalTaxLiability);
   });
+
+  it('adds equity LTCG tax (with cess) on top of slab tax without affecting taxable income', () => {
+    const base: TaxCalculationInput = {
+      assessmentYear: 'FY2025-26',
+      ageCategory: 'below60',
+      salary: {
+        basic: 800000,
+        hraReceived: 0,
+        rentPaid: 0,
+        cityType: 'metro',
+        lta: 0,
+        specialAllowance: 0,
+      },
+    };
+    const withCapitalGains: TaxCalculationInput = {
+      ...base,
+      capitalGains: { equityLTCG: 225000 },
+    };
+
+    const baseResult = calculateTaxForRegime(base, 'new');
+    const withResult = calculateTaxForRegime(withCapitalGains, 'new');
+
+    expect(withResult.taxableIncome).toBe(baseResult.taxableIncome);
+    expect(withResult.capitalGains.equityLTCGTax).toBeCloseTo(100000 * 0.125);
+    expect(withResult.totalTaxLiability).toBeGreaterThan(baseResult.totalTaxLiability);
+  });
+
+  it('adds other STCG to gross total income and taxes it at slab rates', () => {
+    const withCapitalGains: TaxCalculationInput = {
+      assessmentYear: 'FY2025-26',
+      ageCategory: 'below60',
+      capitalGains: { otherSTCG: 100000 },
+    };
+    const result = calculateTaxForRegime(withCapitalGains, 'new');
+    expect(result.grossTotalIncome).toBe(100000);
+    expect(result.capitalGains.totalCapitalGainsTax).toBe(0);
+  });
 });

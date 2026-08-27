@@ -57,6 +57,17 @@ export interface DeductionsInput {
   section80G?: number;
 }
 
+export interface CapitalGainsInput {
+  /** Section 111A - STCG on listed equity shares / equity-oriented mutual funds (STT paid). */
+  equitySTCG?: number;
+  /** Section 112A - LTCG on listed equity shares / equity-oriented mutual funds (STT paid). */
+  equityLTCG?: number;
+  /** STCG on other assets (debt funds, property, unlisted shares) - taxed at slab rates. */
+  otherSTCG?: number;
+  /** Section 112 - LTCG on other assets (debt funds, property, unlisted shares, etc). */
+  otherLTCG?: number;
+}
+
 export interface TaxCalculationInput {
   assessmentYear: AssessmentYear;
   ageCategory: AgeCategory;
@@ -64,6 +75,11 @@ export interface TaxCalculationInput {
   houseProperty?: HousePropertyInput;
   otherIncome?: OtherIncomeInput;
   deductions?: DeductionsInput;
+  capitalGains?: CapitalGainsInput;
+  /** Additional income sources used only for ITR form recommendation, not tax calculation. */
+  otherIncomeSources?: ItrRecommenderInput;
+  /** Tax already paid via TDS/TCS/self-assessment, used for advance tax computation. */
+  taxAlreadyPaid?: number;
 }
 
 export interface InternationalTaxCalculationInput {
@@ -156,6 +172,20 @@ export interface DeductionsBreakdown {
   total: number;
 }
 
+export interface CapitalGainsBreakdown {
+  equitySTCG: number;
+  equityLTCG: number;
+  otherSTCG: number;
+  otherLTCG: number;
+  equitySTCGTax: number;
+  equityLTCGExemptionUsed: number;
+  equityLTCGTax: number;
+  otherLTCGTax: number;
+  otherSTCGAddedToIncome: number;
+  totalCapitalGainsTax: number;
+  totalCapitalGainsIncome: number;
+}
+
 export interface TaxBreakdown {
   regime: Regime;
   grossTotalIncome: number;
@@ -168,6 +198,7 @@ export interface TaxBreakdown {
   surcharge: number;
   marginalRelief: number;
   cess: number;
+  capitalGains: CapitalGainsBreakdown;
   totalTaxLiability: number;
   effectiveTaxRate: number;
 }
@@ -177,4 +208,45 @@ export interface RegimeComparisonResult {
   new: TaxBreakdown;
   recommendedRegime: Regime;
   savings: number;
+}
+
+/** Quarterly advance tax installment schedule per Section 211. */
+export interface AdvanceTaxInstallment {
+  label: string;
+  dueDate: string;
+  cumulativePercentage: number;
+  cumulativeAmountDue: number;
+  amountDueThisInstallment: number;
+}
+
+export interface AdvanceTaxResult {
+  totalTaxLiability: number;
+  taxAlreadyPaid: number;
+  netTaxPayable: number;
+  advanceTaxApplicable: boolean;
+  installments: AdvanceTaxInstallment[];
+  interestSection234B: number;
+  interestSection234C: number;
+  totalInterest: number;
+}
+
+export type ItrForm = 'ITR-1' | 'ITR-2' | 'ITR-3' | 'ITR-4';
+
+export interface ItrRecommenderInput {
+  hasSalaryIncome?: boolean;
+  hasSingleHouseProperty?: boolean;
+  hasMultipleHouseProperties?: boolean;
+  hasCapitalGains?: boolean;
+  hasBusinessOrProfessionIncome?: boolean;
+  isPresumptiveTaxationScheme?: boolean;
+  hasForeignAssetsOrIncome?: boolean;
+  isCompanyDirector?: boolean;
+  hasUnlistedEquityShares?: boolean;
+  totalIncome?: number;
+  isResidentIndividual?: boolean;
+}
+
+export interface ItrRecommendation {
+  recommendedForm: ItrForm;
+  reasons: string[];
 }
