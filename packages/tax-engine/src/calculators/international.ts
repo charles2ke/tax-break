@@ -104,6 +104,8 @@ export function calculateInternationalTax(
     };
   }
 
+  const totalTaxLiability = Math.round(incomeTax * 100) / 100;
+
   return {
     country: input.country,
     currency: config.currency,
@@ -111,7 +113,7 @@ export function calculateInternationalTax(
     standardDeduction,
     taxableIncome,
     incomeTax,
-    totalTaxLiability: incomeTax,
-    effectiveTaxRate: grossIncome > 0 ? (incomeTax / grossIncome) * 100 : 0,
+    totalTaxLiability,
+    effectiveTaxRate: grossIncome > 0 ? (totalTaxLiability / grossIncome) * 100 : 0,
   };
 }
