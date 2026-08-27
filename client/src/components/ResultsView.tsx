@@ -8,11 +8,15 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { InternationalTaxResult, RegimeComparisonResult } from '@tax-break/tax-engine';
+import type { InternationalTaxResult, RegimeComparisonResult, TaxCalculationInput } from '@tax-break/tax-engine';
+import { AdvanceTaxAndItrSection } from './AdvanceTaxAndItrSection';
+import { SaveExportActions } from './SaveExportActions';
 
 interface Props {
   result: RegimeComparisonResult | InternationalTaxResult;
+  input?: TaxCalculationInput;
   onBack: () => void;
+  onRequireLogin?: () => void;
 }
 
 function formatCurrency(amount: number, currency = 'INR'): string {
@@ -23,11 +27,12 @@ function formatCurrency(amount: number, currency = 'INR'): string {
   }).format(amount);
 }
 
-export function ResultsView({ result, onBack }: Props) {
+export function ResultsView({ result, input, onBack, onRequireLogin }: Props) {
   if ('country' in result) {
     return <InternationalResultsView result={result} onBack={onBack} />;
   }
   const { old: oldRegime, new: newRegime, recommendedRegime, savings } = result;
+  const recommended = recommendedRegime === 'old' ? oldRegime : newRegime;
 
   const chartData = [
     {
@@ -115,6 +120,11 @@ export function ResultsView({ result, onBack }: Props) {
               newR={newRegime.taxAfterRebate}
             />
             <Row label="Surcharge" old={oldRegime.surcharge} newR={newRegime.surcharge} />
+            <Row
+              label="Capital Gains Tax"
+              old={oldRegime.capitalGains.totalCapitalGainsTax}
+              newR={newRegime.capitalGains.totalCapitalGainsTax}
+            />
             <Row label="Health & Education Cess (4%)" old={oldRegime.cess} newR={newRegime.cess} />
             <tr className="font-semibold">
               <td className="py-2 pr-4">Total Tax Liability</td>
@@ -133,11 +143,27 @@ export function ResultsView({ result, onBack }: Props) {
         </table>
       </div>
 
+      {input && (
+        <AdvanceTaxAndItrSection
+          assessmentYear={input.assessmentYear}
+          totalTaxLiability={recommended.totalTaxLiability}
+          taxAlreadyPaid={input.taxAlreadyPaid ?? 0}
+          hasCapitalGains={recommended.capitalGains.totalCapitalGainsIncome > 0}
+          hasHouseProperty={Boolean(input.houseProperty)}
+          totalIncome={recommended.grossTotalIncome}
+        />
+      )}
+
+      {input && onRequireLogin && (
+        <SaveExportActions input={input} result={result} onRequireLogin={onRequireLogin} />
+      )}
+
       <p className="mt-10 text-xs text-slate-400">
         This calculation is for informational and estimation purposes only. It is not a substitute
         for professional tax advice or official e-filing.
       </p>
     </div>
+
   );
 }
 
