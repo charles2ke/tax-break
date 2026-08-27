@@ -16,7 +16,7 @@ interface Props {
 }
 
 function formatCurrency(amount: number, currency = 'INR'): string {
-  return new Intl.NumberFormat('en-IN', {
+  return new Intl.NumberFormat(currency === 'INR' ? 'en-IN' : 'en-US', {
     style: 'currency',
     currency,
     maximumFractionDigits: 0,
@@ -148,10 +148,14 @@ function InternationalResultsView({
   result: InternationalTaxResult;
   onBack: () => void;
 }) {
-  const country =
-    result.country === 'uk'
-      ? 'United Kingdom'
-      : result.country.replace(/^\w/, (c) => c.toUpperCase());
+  const countryNames: Record<InternationalTaxResult['country'], string> = {
+    ireland: 'Ireland',
+    netherlands: 'Netherlands',
+    uk: 'United Kingdom',
+    us: 'United States',
+    singapore: 'Singapore',
+  };
+  const country = countryNames[result.country];
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
       <button
