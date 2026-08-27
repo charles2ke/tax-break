@@ -23,6 +23,17 @@ estimates for Ireland, the Netherlands, the UK, the US, and Singapore.
 - Side-by-side Old vs New regime comparison with a recommendation and savings amount.
 - 2025 resident individual income-tax slab estimates for Ireland, the Netherlands, the UK, the US,
   and Singapore in their local currency.
+- Capital gains tax (equity/other STCG and LTCG, Sections 111A/112/112A) factored into the regime
+  comparison.
+- Advance tax installment schedule (15%/45%/75%/100% due-date breakdown) with an estimate of
+  interest under Sections 234B/234C for underpayment.
+- Rules-based ITR form recommender (ITR-1 through ITR-4) based on declared income sources.
+- User accounts (signup/login/logout) secured with hashed passwords and JWT session cookies.
+- Saving calculations to your account, and listing/exporting/deleting them later.
+- Exporting a saved calculation as PDF or Excel (XLSX).
+- A simulated e-filing submission flow for saved returns (see [E-filing integration](#e-filing-integration)).
+- An admin config panel to override slab/deduction configuration per assessment year without a
+  redeploy (falls back to the built-in defaults; the first user to sign up becomes an admin).
 
 ## Project Structure
 
@@ -30,7 +41,8 @@ This is an npm workspaces monorepo:
 
 ```
 ├── packages/tax-engine   # Reusable, framework-agnostic tax calculation engine (TypeScript)
-├── server                # Express + TypeScript REST API that wraps the tax-engine
+├── server                # Express + TypeScript REST API that wraps the tax-engine, plus
+│                          # SQLite-backed auth, persistence, admin config, and export/e-file
 └── client                # React + TypeScript (Vite) + Tailwind CSS frontend
 ```
 
@@ -67,16 +79,49 @@ npm run build --workspace=packages/tax-engine
 npm run dev --workspace=server
 ```
 
-The API will be available at `http://localhost:4000`.
+The API will be available at `http://localhost:4000`. Copy `server/.env.example` to `server/.env`
+and adjust as needed — see [Environment variables](#environment-variables) below. On first run, the
+server creates a local SQLite database (see `DB_PATH`) with the required tables.
 
 - `POST /api/calculate` — accepts a full income + deductions payload and returns the tax
-  breakdown for both regimes.
-- `GET /api/config/:assessmentYear` — returns the slab/deduction configuration for a given
-  assessment year (e.g. `FY2024-25`, `FY2025-26`).
+  breakdown for both regimes (capital gains included). If an authenticated admin has overridden the
+  configuration for the assessment year, the override is used instead of the built-in defaults.
+- `GET /api/config/:assessmentYear` — returns the effective slab/deduction configuration for a
+  given assessment year (e.g. `FY2024-25`, `FY2025-26`), including any admin override.
+- `POST /api/advance-tax` — computes the quarterly advance tax installment schedule and an
+  estimated 234B/234C interest for underpayment.
+- `POST /api/itr-recommendation` — returns a recommended ITR form (ITR-1 to ITR-4) with a
+  rationale, based on declared income sources.
+- `POST /api/auth/signup`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` —
+  account management. Sessions are tracked via an httpOnly JWT cookie. The very first account
+  created is automatically granted the `admin` role.
+- `POST /api/tax-returns`, `GET /api/tax-returns`, `GET /api/tax-returns/:id`,
+  `DELETE /api/tax-returns/:id` — save, list, fetch, and delete a calculation against the
+  authenticated user's account (requires login).
+- `GET /api/tax-returns/:id/export/pdf`, `GET /api/tax-returns/:id/export/xlsx` — download a saved
+  calculation as a PDF or Excel file.
+- `POST /api/tax-returns/:id/efile` — submits a saved return through a **simulated** e-filing
+  provider (see [E-filing integration](#e-filing-integration)).
+- `GET /api/admin/config/:assessmentYear`, `PUT /api/admin/config/:assessmentYear`,
+  `DELETE /api/admin/config/:assessmentYear` — admin-only endpoints to view, override, or reset the
+  tax configuration for an assessment year.
 
 By default, the API only accepts cross-origin requests from `http://localhost:5173` (the client
 dev server). Override this with a comma-separated list via the `CORS_ALLOWED_ORIGINS` environment
 variable when deploying.
+
+#### Environment variables
+
+See `server/.env.example` for the full list with descriptions. Key variables:
+
+| Variable                | Description                                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `PORT`                  | Port the Express server listens on (default `4000`).                                                 |
+| `CORS_ALLOWED_ORIGINS`  | Comma-separated list of allowed origins.                                                              |
+| `DB_PATH`               | Path to the SQLite database file (default `server/data/tax-break.sqlite3`).                          |
+| `JWT_SECRET`            | Secret used to sign auth JWTs. **Required** in production; auto-generated per process in development. |
+| `SESSION_SECRET`        | Secret used to sign the CSRF session cookie (session holds no auth state). **Required** in production; auto-generated per process in development. |
+| `NODE_ENV`              | Set to `production` to require `JWT_SECRET`/`SESSION_SECRET` and enable secure cookies.               |
 
 ### Run the frontend client
 
@@ -85,7 +130,8 @@ npm run dev --workspace=client
 ```
 
 The app will be available at `http://localhost:5173` and proxies `/api` requests to the backend
-server running on port 4000.
+server running on port 4000. It includes signup/login, a "My Returns" page for saved calculations
+(with PDF/Excel export and e-file actions), and an admin config panel (visible to admin users).
 
 ### Lint
 
@@ -96,7 +142,8 @@ npm run lint
 ## Tech Stack
 
 - **Frontend:** React + TypeScript (Vite), Tailwind CSS, Recharts
-- **Backend:** Node.js + Express + TypeScript
+- **Backend:** Node.js + Express + TypeScript, better-sqlite3, JWT (jsonwebtoken) + bcryptjs for
+  auth, pdfkit + exceljs for export
 - **Tax engine:** Standalone TypeScript package, unit tested with Vitest
 - **CI/CD:** GitHub Actions (lint + build + test on every PR, plus GitHub Pages deployment for
   the client)
@@ -114,8 +161,18 @@ The frontend is published from `client/dist` to GitHub Pages by
 `VITE_CALCULATION_MODE=local` makes the deployed Pages site run tax calculations directly in the
 browser using `packages/tax-engine`, so it does not depend on a separately hosted backend API.
 
+## E-filing integration
+
+Real e-filing with the Income Tax Department requires registering as an ERI/GSP intermediary and
+obtaining API credentials — this is a compliance/registration process, not something that can be
+completed purely through code changes. To keep the feature usable end-to-end while that access is
+pending, `server/src/services/efilingProvider.ts` defines an `EFilingProvider` interface and ships
+a `MockEFilingProvider` that simulates a submission (acknowledgement number, status) and clearly
+labels its response as simulated. Swap in a real implementation of `EFilingProvider` once
+credentials are available.
+
+
 ## Out of Scope (for now)
 
-User authentication/accounts, saving/persisting user data, PDF/Excel export, capital gains,
-advance tax, ITR form recommender, admin config panel, and e-filing integration are not part of
-this initial version.
+Real e-filing submission (beyond the simulated flow described above), email verification/password
+reset, and multi-factor authentication are not part of this version.

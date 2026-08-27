@@ -11,6 +11,7 @@ import { SalarySection } from './SalarySection';
 import { HousePropertySection } from './HousePropertySection';
 import { OtherIncomeSection } from './OtherIncomeSection';
 import { DeductionsSection } from './DeductionsSection';
+import { CapitalGainsSection } from './CapitalGainsSection';
 import { NumberField } from './NumberField';
 
 interface Props {
@@ -33,6 +34,8 @@ function toTaxCalculationInput(form: FormState): TaxCalculationInput {
       section80E: form.deductions.section80E,
       section80G: form.deductions.section80G,
     },
+    capitalGains: form.capitalGains,
+    taxAlreadyPaid: form.taxAlreadyPaid,
   };
 }
 
@@ -75,6 +78,7 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
           <HousePropertySection form={form} onChange={handleChange} />
           <OtherIncomeSection form={form} onChange={handleChange} />
           <DeductionsSection form={form} onChange={handleChange} />
+          <CapitalGainsSection form={form} onChange={handleChange} />
         </>
       ) : (
         <section className="space-y-4">
