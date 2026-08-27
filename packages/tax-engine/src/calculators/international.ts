@@ -1,4 +1,5 @@
 import { calculateSlabTax } from './slabTax';
+import { calculateUsStateTax } from './usState';
 import { InternationalTaxCalculationInput, InternationalTaxResult, SlabBracket } from '../types';
 
 interface CountryTaxConfig {
@@ -38,7 +39,9 @@ const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], Count
   },
   us: {
     currency: 'USD',
-    standardDeduction: 15000,
+    // 2025 single-filer standard deduction (IRS Rev. Proc. 2024-40, as amended by the
+    // One Big Beautiful Bill Act).
+    standardDeduction: 15750,
     slabs: [
       { from: 0, to: 11925, rate: 0.1 },
       { from: 11925, to: 48475, rate: 0.12 },
@@ -77,6 +80,10 @@ export function calculateInternationalTax(
   const taxableIncome = grossIncome - standardDeduction;
   const incomeTax = Math.round(calculateSlabTax(taxableIncome, config.slabs) * 100) / 100;
 
+  const stateResult =
+    input.country === 'us' && input.state ? calculateUsStateTax(grossIncome, input.state) : undefined;
+  const totalTaxLiability = Math.round((incomeTax + (stateResult?.stateTax ?? 0)) * 100) / 100;
+
   return {
     country: input.country,
     currency: config.currency,
@@ -84,7 +91,14 @@ export function calculateInternationalTax(
     standardDeduction,
     taxableIncome,
     incomeTax,
-    totalTaxLiability: incomeTax,
-    effectiveTaxRate: grossIncome > 0 ? (incomeTax / grossIncome) * 100 : 0,
+    ...(stateResult
+      ? {
+          state: stateResult.state,
+          stateTax: stateResult.stateTax,
+          stateTaxableIncome: stateResult.stateTaxableIncome,
+        }
+      : {}),
+    totalTaxLiability,
+    effectiveTaxRate: grossIncome > 0 ? (totalTaxLiability / grossIncome) * 100 : 0,
   };
 }

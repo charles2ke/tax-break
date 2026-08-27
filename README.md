@@ -23,6 +23,9 @@ estimates for Ireland, the Netherlands, the UK, the US, and Singapore.
 - Side-by-side Old vs New regime comparison with a recommendation and savings amount.
 - 2025 resident individual income-tax slab estimates for Ireland, the Netherlands, the UK, the US,
   and Singapore in their local currency.
+- US estimates use the 2025 single-filer federal brackets and standard deduction, and add state
+  income tax for the selected state of residence (all 50 states plus DC). Local/city/county income
+  taxes, tax credits, and payroll taxes are excluded.
 - Capital gains tax (equity/other STCG and LTCG, Sections 111A/112/112A) factored into the regime
   comparison.
 - Advance tax installment schedule (15%/45%/75%/100% due-date breakdown) with an estimate of

@@ -209,7 +209,19 @@ function InternationalResultsView({
           currency={result.currency}
         />
         <InternationalRow
-          label="Estimated income tax"
+          label={result.country === 'us' ? 'Estimated federal income tax' : 'Estimated income tax'}
+          value={result.incomeTax}
+          currency={result.currency}
+        />
+        {result.stateTax !== undefined && (
+          <InternationalRow
+            label={`Estimated state income tax (${result.state})`}
+            value={result.stateTax}
+            currency={result.currency}
+          />
+        )}
+        <InternationalRow
+          label="Total estimated tax"
           value={result.totalTaxLiability}
           currency={result.currency}
           strong
@@ -218,8 +230,9 @@ function InternationalResultsView({
       </dl>
       <p className="mt-8 text-xs text-slate-400">
         This resident-individual estimate excludes payroll/social-security contributions, tax
-        credits, allowances, and local taxes. Confirm your return with the official filing service
-        or a qualified professional.
+        credits, allowances, and local taxes. US figures assume a single filer; city and county
+        income taxes are not included. Confirm your return with the official filing service or a
+        qualified professional.
       </p>
     </div>
   );
