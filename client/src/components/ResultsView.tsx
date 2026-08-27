@@ -208,6 +208,20 @@ function InternationalResultsView({
           value={result.taxableIncome}
           currency={result.currency}
         />
+        {result.taxCredits > 0 && (
+          <>
+            <InternationalRow
+              label="Income tax before credits"
+              value={result.incomeTax}
+              currency={result.currency}
+            />
+            <InternationalRow
+              label="Tax credits"
+              value={result.taxCredits}
+              currency={result.currency}
+            />
+          </>
+        )}
         <InternationalRow
           label="Estimated income tax"
           value={result.totalTaxLiability}
@@ -217,9 +231,12 @@ function InternationalResultsView({
         <InternationalRow label="Effective tax rate" value={result.effectiveTaxRate} suffix="%" />
       </dl>
       <p className="mt-8 text-xs text-slate-400">
-        This resident-individual estimate excludes payroll/social-security contributions, tax
-        credits, allowances, and local taxes. Confirm your return with the official filing service
-        or a qualified professional.
+        This resident-individual estimate excludes payroll/social-security contributions,
+        allowances, and local taxes, and only applies tax credits where they are shown above.
+        {result.country === 'netherlands' &&
+          ' The Netherlands has no provincial or municipal income tax; Box 1 rates for taxpayers' +
+            ' below the AOW age are used, including the general and labour tax credits.'}{' '}
+        Confirm your return with the official filing service or a qualified professional.
       </p>
     </div>
   );
