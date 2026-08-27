@@ -208,17 +208,19 @@ function InternationalResultsView({
           value={result.taxableIncome}
           currency={result.currency}
         />
-        <InternationalRow
-          label="Income tax before credits"
-          value={result.incomeTax}
-          currency={result.currency}
-        />
         {result.taxCredits > 0 && (
-          <InternationalRow
-            label="Tax credits"
-            value={result.taxCredits}
-            currency={result.currency}
-          />
+          <>
+            <InternationalRow
+              label="Income tax before credits"
+              value={result.incomeTax}
+              currency={result.currency}
+            />
+            <InternationalRow
+              label="Tax credits"
+              value={result.taxCredits}
+              currency={result.currency}
+            />
+          </>
         )}
         <InternationalRow
           label="Estimated income tax"
