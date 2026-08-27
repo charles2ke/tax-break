@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import {
   calculateAdvanceTax,
   calculateInternationalTax,
@@ -22,6 +23,7 @@ import {
 } from './validation';
 
 const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173'];
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 function getAllowedOrigins(): string[] {
   const configured = process.env.CORS_ALLOWED_ORIGINS;
@@ -31,6 +33,34 @@ function getAllowedOrigins(): string[] {
     .map((origin) => origin.trim())
     .filter(Boolean);
 }
+
+/**
+ * Lightweight CSRF mitigation: since authentication is carried via a cookie, reject
+ * state-changing requests (non-GET/HEAD/OPTIONS) whose Origin (or Referer, as a fallback for
+ * clients that omit Origin) header is not one of the explicitly allowed origins. Combined with
+ * the `SameSite=Lax` cookie attribute, this prevents cross-site requests from third-party pages
+ * from performing authenticated actions on behalf of a logged-in user.
+ */
+function csrfOriginCheck(allowedOrigins: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (SAFE_METHODS.has(req.method)) return next();
+    const origin = req.get('origin') ?? req.get('referer');
+    if (!origin) return next();
+    const isAllowed = allowedOrigins.some((allowed) => origin === allowed || origin.startsWith(`${allowed}/`));
+    if (!isAllowed) {
+      return res.status(403).json({ error: 'Request origin is not allowed' });
+    }
+    return next();
+  };
+}
+
+const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts. Please try again later.' },
+});
 
 export function createApp() {
   const app = express();
@@ -43,6 +73,7 @@ export function createApp() {
   );
   app.use(express.json());
   app.use(cookieParser());
+  app.use(csrfOriginCheck(allowedOrigins));
   app.use(attachUser);
 
   app.get('/api/health', (_req: Request, res: Response) => {
@@ -90,7 +121,7 @@ export function createApp() {
     return res.json(result);
   });
 
-  app.use('/api/auth', authRouter);
+  app.use('/api/auth', authRateLimiter, authRouter);
   app.use('/api/tax-returns', taxReturnsRouter);
   app.use('/api/admin', adminRouter);
 

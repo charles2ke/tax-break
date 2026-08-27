@@ -5,8 +5,13 @@ import { hashPassword, verifyPassword } from '../auth/password';
 import { countUsers, createUser, findUserByEmail, toPublicUser } from '../auth/userRepository';
 import { ValidationError } from '../validation';
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{1,63}$/;
 const MIN_PASSWORD_LENGTH = 8;
+
+function isValidEmail(email: string): boolean {
+  if (email.length === 0 || email.length > 254) return false;
+  return EMAIL_REGEX.test(email);
+}
 
 function isProduction(): boolean {
   return process.env.NODE_ENV === 'production';
@@ -17,7 +22,7 @@ export const authRouter = Router();
 authRouter.post('/signup', async (req, res, next) => {
   try {
     const { email, password } = req.body ?? {};
-    if (typeof email !== 'string' || !EMAIL_REGEX.test(email)) {
+    if (typeof email !== 'string' || !isValidEmail(email)) {
       throw new ValidationError('A valid email address is required');
     }
     if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
