@@ -4,6 +4,7 @@ import {
   InternationalTaxCalculationInput,
   ItrRecommenderInput,
   listAssessmentYears,
+  listUsStates,
   TaxCalculationInput,
 } from '@tax-break/tax-engine';
 
@@ -148,6 +149,15 @@ export function validateInternationalTaxCalculationInput(
   }
   if (!isNonNegativeNumber(input.annualIncome)) {
     throw new ValidationError('annualIncome must be a non-negative number');
+  }
+  if (input.state !== undefined) {
+    const validStates = listUsStates().map((state) => state.code);
+    if (typeof input.state !== 'string' || !validStates.includes(input.state as never)) {
+      throw new ValidationError(`state must be one of: ${validStates.join(', ')}`);
+    }
+    if (input.country !== 'us') {
+      throw new ValidationError('state is only supported when country is "us"');
+    }
   }
 
   return input as unknown as InternationalTaxCalculationInput;

@@ -87,25 +87,62 @@ export interface TaxCalculationInput {
   taxAlreadyPaid?: number;
 }
 
-export interface InternationalTaxCalculationInput {
-  country: Exclude<TaxCountry, 'india'>;
+/** Two-letter postal codes for the 50 US states plus the District of Columbia. */
+export type UsState =
+  | 'AL' | 'AK' | 'AZ' | 'AR' | 'CA' | 'CO' | 'CT' | 'DE' | 'DC' | 'FL'
+  | 'GA' | 'HI' | 'ID' | 'IL' | 'IN' | 'IA' | 'KS' | 'KY' | 'LA' | 'ME'
+  | 'MD' | 'MA' | 'MI' | 'MN' | 'MS' | 'MO' | 'MT' | 'NE' | 'NV' | 'NH'
+  | 'NJ' | 'NM' | 'NY' | 'NC' | 'ND' | 'OH' | 'OK' | 'OR' | 'PA' | 'RI'
+  | 'SC' | 'SD' | 'TN' | 'TX' | 'UT' | 'VT' | 'VA' | 'WA' | 'WV' | 'WI' | 'WY';
+
+type InternationalTaxCalculationBase = {
   /** Annual gross income in the country's local currency. */
   annualIncome: number;
-}
+};
 
-export interface InternationalTaxResult {
-  country: Exclude<TaxCountry, 'india'>;
+export type InternationalTaxCalculationInput =
+  | (InternationalTaxCalculationBase & {
+      country: 'us';
+      /**
+       * State of residence, used to estimate state income tax on top of the federal liability.
+       * Omit for a federal-only estimate.
+       */
+      state?: UsState;
+    })
+  | (InternationalTaxCalculationBase & {
+      country: Exclude<TaxCountry, 'india' | 'us'>;
+      state?: never;
+    });
+
+interface InternationalTaxResultBase {
   currency: string;
   grossIncome: number;
   standardDeduction: number;
   taxableIncome: number;
-  /** Slab/bracket tax before any non-refundable tax credits. */
+  /** Slab/bracket tax before any non-refundable tax credits (federal tax for the US). */
   incomeTax: number;
   /** Non-refundable tax credits applied against the slab tax (0 when not modelled). */
   taxCredits: number;
   totalTaxLiability: number;
   effectiveTaxRate: number;
 }
+
+export type InternationalTaxResult =
+  | (InternationalTaxResultBase & {
+      country: 'us';
+      /** The state of residence the state tax was estimated for. */
+      state?: UsState;
+      /** Estimated state income tax. */
+      stateTax?: number;
+      /** Income subject to state income tax after the state deduction/exemption. */
+      stateTaxableIncome?: number;
+    })
+  | (InternationalTaxResultBase & {
+      country: Exclude<TaxCountry, 'india' | 'us'>;
+      state?: never;
+      stateTax?: never;
+      stateTaxableIncome?: never;
+    });
 
 export interface SlabBracket {
   /** Lower bound of the bracket (inclusive). */

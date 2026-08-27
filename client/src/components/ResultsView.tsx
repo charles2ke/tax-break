@@ -208,7 +208,22 @@ function InternationalResultsView({
           value={result.taxableIncome}
           currency={result.currency}
         />
-        {result.taxCredits > 0 && (
+        {result.country === 'us' ? (
+          <>
+            <InternationalRow
+              label="Estimated federal income tax"
+              value={result.incomeTax}
+              currency={result.currency}
+            />
+            {result.stateTax !== undefined && (
+              <InternationalRow
+                label={`Estimated state income tax (${result.state})`}
+                value={result.stateTax}
+                currency={result.currency}
+              />
+            )}
+          </>
+        ) : result.taxCredits > 0 ? (
           <>
             <InternationalRow
               label="Income tax before credits"
@@ -221,9 +236,9 @@ function InternationalResultsView({
               currency={result.currency}
             />
           </>
-        )}
+        ) : null}
         <InternationalRow
-          label="Estimated income tax"
+          label={result.country === 'us' ? 'Total estimated tax' : 'Estimated income tax'}
           value={result.totalTaxLiability}
           currency={result.currency}
           strong
@@ -234,6 +249,8 @@ function InternationalResultsView({
         This resident-individual estimate excludes payroll/social-security contributions (such as
         Irish USC and PRSI), local taxes, and other country-specific reliefs. It only applies tax
         credits where they are shown above.
+        {result.country === 'us' &&
+          ' US figures assume a single filer; city and county income taxes are not included.'}
         {result.country === 'netherlands' &&
           ' The Netherlands has no provincial or municipal income tax; Box 1 rates for taxpayers' +
             ' below the AOW age are used, including the general and labour tax credits.'}{' '}
