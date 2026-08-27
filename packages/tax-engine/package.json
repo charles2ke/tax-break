@@ -1,0 +1,18 @@
+{
+  "name": "@tax-break/tax-engine",
+  "version": "1.0.0",
+  "description": "Reusable Indian income tax calculation engine (Old vs New regime)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "vitest": "^1.6.0"
+  },
+  "license": "MIT"
+}

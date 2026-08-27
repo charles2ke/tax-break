@@ -1,0 +1,10 @@
+export * from './types';
+export { getConfig, listAssessmentYears, assessmentYearConfigs } from './config';
+export { calculateHraExemption } from './calculators/hra';
+export { calculateHouseProperty } from './calculators/houseProperty';
+export { calculateDeductions } from './calculators/deductions';
+export { calculateSlabTax } from './calculators/slabTax';
+export { calculateRebate87A } from './calculators/rebate';
+export { calculateSurcharge } from './calculators/surcharge';
+export { calculateTaxForRegime } from './calculators/regime';
+export { compareRegimes } from './calculators/compare';

@@ -1,0 +1,161 @@
+export type AssessmentYear = 'FY2024-25' | 'FY2025-26';
+
+export type AgeCategory = 'below60' | '60to80' | 'above80';
+
+export type Regime = 'old' | 'new';
+
+export type CityType = 'metro' | 'non-metro';
+
+export type HousePropertyType = 'self-occupied' | 'let-out';
+
+export interface SalaryIncomeInput {
+  basic: number;
+  hraReceived: number;
+  rentPaid: number;
+  cityType: CityType;
+  lta: number;
+  specialAllowance: number;
+  /** Any other taxable components of salary not covered above. */
+  otherTaxableAllowances?: number;
+}
+
+export interface HousePropertyInput {
+  type: HousePropertyType;
+  /** Interest paid on home loan for the year. */
+  homeLoanInterest?: number;
+  /** Annual rent received, only relevant when type is 'let-out'. */
+  annualRentReceived?: number;
+  /** Municipal taxes paid, only relevant when type is 'let-out'. */
+  municipalTaxesPaid?: number;
+}
+
+export interface OtherIncomeInput {
+  /** Interest earned from savings bank accounts. */
+  savingsInterest?: number;
+  /** Interest earned from fixed/recurring deposits and other sources. */
+  otherInterest?: number;
+  dividendIncome?: number;
+  otherIncome?: number;
+}
+
+export interface Section80DInput {
+  selfAndFamilyPremium?: number;
+  parentsPremium?: number;
+  selfSenior?: boolean;
+  parentsSenior?: boolean;
+}
+
+export interface DeductionsInput {
+  section80C?: number;
+  section80D?: Section80DInput;
+  section80CCD1B?: number;
+  /** Section 80E - education loan interest, no cap. */
+  section80E?: number;
+  /** Section 80G - donations, simplified as user entered eligible amount. */
+  section80G?: number;
+}
+
+export interface TaxCalculationInput {
+  assessmentYear: AssessmentYear;
+  ageCategory: AgeCategory;
+  salary?: SalaryIncomeInput;
+  houseProperty?: HousePropertyInput;
+  otherIncome?: OtherIncomeInput;
+  deductions?: DeductionsInput;
+}
+
+export interface SlabBracket {
+  /** Lower bound of the bracket (inclusive). */
+  from: number;
+  /** Upper bound of the bracket (exclusive), or null for no upper bound. */
+  to: number | null;
+  rate: number;
+}
+
+export interface SurchargeSlab {
+  /** Taxable income threshold above which this surcharge rate applies. */
+  threshold: number;
+  rate: number;
+}
+
+export interface RebateConfig {
+  /** Taxable income limit up to which full rebate (nil tax) is available. */
+  incomeLimit: number;
+  /** Maximum rebate amount available under section 87A. */
+  maxAmount: number;
+}
+
+export interface RegimeConfig {
+  slabs: Record<AgeCategory, SlabBracket[]>;
+  standardDeduction: number;
+  rebate87A: RebateConfig;
+  surchargeSlabs: SurchargeSlab[];
+  cessRate: number;
+}
+
+export interface AssessmentYearConfig {
+  assessmentYear: AssessmentYear;
+  label: string;
+  old: RegimeConfig;
+  new: RegimeConfig;
+  section80C: { cap: number };
+  section80CCD1B: { cap: number };
+  section80D: {
+    selfAndFamilyCap: number;
+    selfAndFamilySeniorCap: number;
+    parentsCap: number;
+    parentsSeniorCap: number;
+  };
+  section80TTA: { cap: number };
+  section80TTB: { cap: number };
+  homeLoanInterestCap: { selfOccupied: number };
+}
+
+export interface HraExemptionResult {
+  actualHraReceived: number;
+  rentMinusTenPercentBasic: number;
+  metroLimit: number;
+  exemptAmount: number;
+  taxableHra: number;
+}
+
+export interface HousePropertyResult {
+  netAnnualValue: number;
+  standardDeductionOnNav: number;
+  interestDeduction: number;
+  incomeFromHouseProperty: number;
+}
+
+export interface DeductionsBreakdown {
+  section80C: number;
+  section80D: number;
+  section80CCD1B: number;
+  section80TTA_TTB: number;
+  section80E: number;
+  section80G: number;
+  standardDeduction: number;
+  total: number;
+}
+
+export interface TaxBreakdown {
+  regime: Regime;
+  grossTotalIncome: number;
+  totalDeductions: number;
+  deductionsBreakdown: DeductionsBreakdown;
+  taxableIncome: number;
+  taxBeforeRebate: number;
+  rebate: number;
+  taxAfterRebate: number;
+  surcharge: number;
+  marginalRelief: number;
+  cess: number;
+  totalTaxLiability: number;
+  effectiveTaxRate: number;
+}
+
+export interface RegimeComparisonResult {
+  old: TaxBreakdown;
+  new: TaxBreakdown;
+  recommendedRegime: Regime;
+  savings: number;
+}
