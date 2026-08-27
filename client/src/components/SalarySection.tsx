@@ -17,11 +17,17 @@ export function SalarySection({ form, onChange }: Props) {
     <section className="space-y-4">
       <h2 className="text-lg font-semibold text-slate-900">2. Salary Details</h2>
       <div className="grid gap-4 sm:grid-cols-2">
-        <NumberField label="Basic Salary (annual)" value={salary.basic} onChange={(v) => update({ basic: v })} />
+        <NumberField
+          label="Basic Salary (annual)"
+          value={salary.basic}
+          onChange={(v) => update({ basic: v })}
+          helpText="Basic pay plus dearness allowance for the year, as shown on your payslip."
+        />
         <NumberField
           label="HRA Received (annual)"
           value={salary.hraReceived}
           onChange={(v) => update({ hraReceived: v })}
+          helpText="House Rent Allowance actually paid to you during the year."
         />
         <NumberField
           label="Rent Paid (annual)"
@@ -39,12 +45,21 @@ export function SalarySection({ form, onChange }: Props) {
             <option value="metro">Metro (Delhi, Mumbai, Kolkata, Chennai)</option>
             <option value="non-metro">Non-Metro</option>
           </select>
+          <span className="mt-1 block text-xs text-slate-500">
+            Metro cities allow an HRA exemption of 50% of basic salary; other cities allow 40%.
+          </span>
         </label>
-        <NumberField label="LTA (annual)" value={salary.lta} onChange={(v) => update({ lta: v })} />
+        <NumberField
+          label="LTA (annual)"
+          value={salary.lta}
+          onChange={(v) => update({ lta: v })}
+          helpText="Leave Travel Allowance received. Included in salary income here; claim the exemption separately if eligible."
+        />
         <NumberField
           label="Special Allowance (annual)"
           value={salary.specialAllowance}
           onChange={(v) => update({ specialAllowance: v })}
+          helpText="Any other fully taxable salary components, such as bonus or special allowance."
         />
       </div>
     </section>

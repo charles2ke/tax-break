@@ -69,6 +69,10 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
           <option value="us">United States</option>
           <option value="singapore">Singapore</option>
         </select>
+        <span className="mt-1 block text-xs text-slate-500">
+          Pick the country you are tax resident in. India gives a full Old vs New Regime comparison;
+          other countries give a simpler resident individual estimate.
+        </span>
       </label>
 
       {country === 'india' ? (
@@ -87,7 +91,7 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
             label="Gross annual income (local currency)"
             value={annualIncome}
             onChange={setAnnualIncome}
-            helpText="Resident individual estimate. Payroll taxes, credits, allowances, and local taxes are excluded."
+            helpText="Total income before tax for the year, in the local currency. Payroll/social-security contributions and local taxes are excluded."
           />
         </section>
       )}

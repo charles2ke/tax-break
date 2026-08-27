@@ -37,13 +37,18 @@ export function BasicInfoSection({ form, onChange }: Props) {
               </option>
             ))}
           </select>
+          <span className="mt-1 block text-xs text-slate-500">
+            The financial year your income was earned in. Slab rates and limits differ per year.
+          </span>
         </label>
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Age Category</span>
           <select
             className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
             value={form.ageCategory}
-            onChange={(e) => onChange((f) => ({ ...f, ageCategory: e.target.value as AgeCategory }))}
+            onChange={(e) =>
+              onChange((f) => ({ ...f, ageCategory: e.target.value as AgeCategory }))
+            }
           >
             {AGE_CATEGORIES.map((ac) => (
               <option key={ac.value} value={ac.value}>
@@ -51,6 +56,10 @@ export function BasicInfoSection({ form, onChange }: Props) {
               </option>
             ))}
           </select>
+          <span className="mt-1 block text-xs text-slate-500">
+            Your age on the last day of the financial year. Senior citizens get a higher Old Regime
+            exemption limit.
+          </span>
         </label>
       </div>
     </section>

@@ -27,6 +27,9 @@ export function HousePropertySection({ form, onChange }: Props) {
             <option value="self-occupied">Self-Occupied</option>
             <option value="let-out">Let-Out (Rented)</option>
           </select>
+          <span className="mt-1 block text-xs text-slate-500">
+            Choose self-occupied if you live in the property, or let-out if it is rented out.
+          </span>
         </label>
         <NumberField
           label="Home Loan Interest Paid (annual)"
@@ -44,11 +47,13 @@ export function HousePropertySection({ form, onChange }: Props) {
               label="Annual Rent Received"
               value={houseProperty.annualRentReceived}
               onChange={(v) => update({ annualRentReceived: v })}
+              helpText="Total rent receivable for the year. A 30% standard deduction is applied automatically."
             />
             <NumberField
               label="Municipal Taxes Paid"
               value={houseProperty.municipalTaxesPaid}
               onChange={(v) => update({ municipalTaxesPaid: v })}
+              helpText="Property tax actually paid to the local authority during the year; deducted from rent received."
             />
           </>
         )}

@@ -51,7 +51,12 @@ export function DeductionsSection({ form, onChange }: Props) {
             checked={deductions.section80D.selfSenior}
             onChange={(e) => update80D({ selfSenior: e.target.checked })}
           />
-          <span className="text-sm text-slate-700">I am a senior citizen (60+)</span>
+          <span className="text-sm text-slate-700">
+            I am a senior citizen (60+)
+            <span className="block text-xs text-slate-500">
+              Raises your own 80D limit from ₹25,000 to ₹50,000.
+            </span>
+          </span>
         </label>
         <NumberField
           label="80D - Health Insurance (Parents)"
@@ -65,7 +70,12 @@ export function DeductionsSection({ form, onChange }: Props) {
             checked={deductions.section80D.parentsSenior}
             onChange={(e) => update80D({ parentsSenior: e.target.checked })}
           />
-          <span className="text-sm text-slate-700">Parents are senior citizens (60+)</span>
+          <span className="text-sm text-slate-700">
+            Parents are senior citizens (60+)
+            <span className="block text-xs text-slate-500">
+              Raises the 80D limit for parents from ₹25,000 to ₹50,000.
+            </span>
+          </span>
         </label>
         <NumberField
           label="80TTA / 80TTB - Savings Interest"
