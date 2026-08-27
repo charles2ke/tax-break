@@ -10,7 +10,7 @@ interface CountryTaxConfig {
 }
 
 // 2025 resident individual income-tax rates. This estimator excludes payroll/social-security
-// contributions (e.g. Irish USC/PRSI), local taxes, allowances, and country-specific reliefs.
+// contributions (e.g. Irish USC/PRSI), local taxes, and other country-specific reliefs.
 const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], CountryTaxConfig> = {
   ireland: {
     currency: 'EUR',
