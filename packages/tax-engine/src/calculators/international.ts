@@ -80,12 +80,11 @@ export function calculateInternationalTax(
   const taxableIncome = grossIncome - standardDeduction;
   const incomeTax = Math.round(calculateSlabTax(taxableIncome, config.slabs) * 100) / 100;
 
-  const stateResult = input.country === 'us' && input.state
-    ? calculateUsStateTax(grossIncome, input.state)
-    : undefined;
-  const totalTaxLiability = Math.round((incomeTax + (stateResult?.stateTax ?? 0)) * 100) / 100;
-
   if (input.country === 'us') {
+    const stateResult = input.state ? calculateUsStateTax(grossIncome, input.state) : undefined;
+    const totalTaxLiability =
+      Math.round((incomeTax + (stateResult?.stateTax ?? 0)) * 100) / 100;
+
     return {
       country: input.country,
       currency: config.currency,
@@ -112,7 +111,7 @@ export function calculateInternationalTax(
     standardDeduction,
     taxableIncome,
     incomeTax,
-    totalTaxLiability,
-    effectiveTaxRate: grossIncome > 0 ? (totalTaxLiability / grossIncome) * 100 : 0,
+    totalTaxLiability: incomeTax,
+    effectiveTaxRate: grossIncome > 0 ? (incomeTax / grossIncome) * 100 : 0,
   };
 }
