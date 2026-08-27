@@ -8,6 +8,7 @@ import type {
   RegimeComparisonResult,
   TaxCalculationInput,
 } from '@tax-break/tax-engine';
+import { calculateInternationalTax, compareRegimes } from '@tax-break/tax-engine';
 
 export class ApiError extends Error {
   status?: number;
@@ -50,10 +51,32 @@ function request<T>(path: string, init?: RequestInit): Promise<T> {
   }).then(parseJsonOrThrow<T>);
 }
 
+function calculateLocally(
+  input: TaxCalculationInput | InternationalTaxCalculationInput,
+): RegimeComparisonResult | InternationalTaxResult {
+  return 'country' in input ? calculateInternationalTax(input) : compareRegimes(input);
+}
+
 export async function calculateTax(
   input: TaxCalculationInput | InternationalTaxCalculationInput,
 ): Promise<RegimeComparisonResult | InternationalTaxResult> {
-  return request('/api/calculate', { method: 'POST', body: JSON.stringify(input) });
+  if (import.meta.env.VITE_CALCULATION_MODE === 'local') {
+    return calculateLocally(input);
+  }
+
+  try {
+    return await request<RegimeComparisonResult | InternationalTaxResult>('/api/calculate', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.status === 404) {
+      // Network error (e.g. offline or static hosting without a backend) or a
+      // missing /api/calculate route both fall back to local calculation.
+      return calculateLocally(input);
+    }
+    throw error;
+  }
 }
 
 export async function calculateAdvanceTax(
@@ -190,4 +213,3 @@ export async function updateAdminConfig(
 export async function resetAdminConfig(assessmentYear: string): Promise<AdminConfigResponse> {
   return request(`/api/admin/config/${assessmentYear}`, { method: 'DELETE' });
 }
-
