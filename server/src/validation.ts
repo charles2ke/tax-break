@@ -38,22 +38,6 @@ export function validateTaxCalculationInput(body: unknown): TaxCalculationInput 
     throw new ValidationError('Request body must be an object');
   }
 
-  export function validateInternationalTaxCalculationInput(body: unknown): InternationalTaxCalculationInput {
-    if (typeof body !== 'object' || body === null) {
-      throw new ValidationError('Request body must be an object');
-    }
-
-    const input = body as Record<string, unknown>;
-    if (!VALID_INTERNATIONAL_COUNTRIES.includes(input.country as string)) {
-      throw new ValidationError(`country must be one of: ${VALID_INTERNATIONAL_COUNTRIES.join(', ')}`);
-    }
-    if (!isNonNegativeNumber(input.annualIncome)) {
-      throw new ValidationError('annualIncome must be a non-negative number');
-    }
-
-    return input as unknown as InternationalTaxCalculationInput;
-  }
-
   const input = body as Record<string, unknown>;
 
   const validAssessmentYears = listAssessmentYears();
@@ -124,10 +108,33 @@ export function validateTaxCalculationInput(body: unknown): TaxCalculationInput 
       if (typeof section80D !== 'object' || section80D === null) {
         throw new ValidationError('deductions.section80D must be an object');
       }
-      assertNonNegativeNumber(section80D.selfAndFamilyPremium, 'deductions.section80D.selfAndFamilyPremium');
+      assertNonNegativeNumber(
+        section80D.selfAndFamilyPremium,
+        'deductions.section80D.selfAndFamilyPremium',
+      );
       assertNonNegativeNumber(section80D.parentsPremium, 'deductions.section80D.parentsPremium');
     }
   }
 
   return input as unknown as TaxCalculationInput;
+}
+
+export function validateInternationalTaxCalculationInput(
+  body: unknown,
+): InternationalTaxCalculationInput {
+  if (typeof body !== 'object' || body === null) {
+    throw new ValidationError('Request body must be an object');
+  }
+
+  const input = body as Record<string, unknown>;
+  if (!VALID_INTERNATIONAL_COUNTRIES.includes(input.country as string)) {
+    throw new ValidationError(
+      `country must be one of: ${VALID_INTERNATIONAL_COUNTRIES.join(', ')}`,
+    );
+  }
+  if (!isNonNegativeNumber(input.annualIncome)) {
+    throw new ValidationError('annualIncome must be a non-negative number');
+  }
+
+  return input as unknown as InternationalTaxCalculationInput;
 }

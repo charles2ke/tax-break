@@ -13,7 +13,10 @@ const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], Count
   ireland: {
     currency: 'EUR',
     standardDeduction: 0,
-    slabs: [{ from: 0, to: 44000, rate: 0.2 }, { from: 44000, to: null, rate: 0.4 }],
+    slabs: [
+      { from: 0, to: 44000, rate: 0.2 },
+      { from: 44000, to: null, rate: 0.4 },
+    ],
   },
   netherlands: {
     currency: 'EUR',
@@ -65,7 +68,9 @@ const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], Count
   },
 };
 
-export function calculateInternationalTax(input: InternationalTaxCalculationInput): InternationalTaxResult {
+export function calculateInternationalTax(
+  input: InternationalTaxCalculationInput,
+): InternationalTaxResult {
   const config = COUNTRY_CONFIGS[input.country];
   const grossIncome = Math.max(0, input.annualIncome);
   const standardDeduction = Math.min(grossIncome, config.standardDeduction);

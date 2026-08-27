@@ -1,5 +1,9 @@
 import { useState } from 'react';
-import type { InternationalTaxCalculationInput, TaxCalculationInput, TaxCountry } from '@tax-break/tax-engine';
+import type {
+  InternationalTaxCalculationInput,
+  TaxCalculationInput,
+  TaxCountry,
+} from '@tax-break/tax-engine';
 import type { FormState } from '../formTypes';
 import { initialFormState } from '../formTypes';
 import { BasicInfoSection } from './BasicInfoSection';

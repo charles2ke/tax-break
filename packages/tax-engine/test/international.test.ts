@@ -15,6 +15,8 @@ describe('calculateInternationalTax', () => {
   });
 
   it.each(['ireland', 'netherlands', 'singapore'] as const)('supports %s', (country) => {
-    expect(calculateInternationalTax({ country, annualIncome: 100000 }).totalTaxLiability).toBeGreaterThan(0);
+    expect(
+      calculateInternationalTax({ country, annualIncome: 100000 }).totalTaxLiability,
+    ).toBeGreaterThan(0);
   });
 });

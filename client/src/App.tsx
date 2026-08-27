@@ -14,7 +14,9 @@ type View = 'landing' | 'form' | 'results';
 
 function App() {
   const [view, setView] = useState<View>('landing');
-  const [result, setResult] = useState<RegimeComparisonResult | InternationalTaxResult | null>(null);
+  const [result, setResult] = useState<RegimeComparisonResult | InternationalTaxResult | null>(
+    null,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
@@ -26,7 +28,9 @@ function App() {
       setResult(response);
       setView('results');
     } catch (err) {
-      setErrorMessage(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
+      setErrorMessage(
+        err instanceof ApiError ? err.message : 'Something went wrong. Please try again.',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -38,7 +42,9 @@ function App() {
       {view === 'form' && (
         <TaxForm onSubmit={handleSubmit} isSubmitting={isSubmitting} errorMessage={errorMessage} />
       )}
-      {view === 'results' && result && <ResultsView result={result} onBack={() => setView('form')} />}
+      {view === 'results' && result && (
+        <ResultsView result={result} onBack={() => setView('form')} />
+      )}
     </div>
   );
 }

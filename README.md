@@ -1,8 +1,8 @@
 # Tax Break
 
-**Tax Break** is an online Indian Annual Income Tax Calculation Portal. It helps you estimate
-your income tax liability under both the **Old Regime** and the **New Regime** for FY 2024-25 and
-FY 2025-26, and tells you which regime is more beneficial for your situation.
+**Tax Break** is an online individual income tax estimation portal. It supports detailed Indian
+Old vs New Regime calculations for FY 2024-25 and FY 2025-26, plus resident individual income-tax
+estimates for Ireland, the Netherlands, the UK, the US, and Singapore.
 
 > ⚠️ **Disclaimer:** This tool is for **informational and estimation purposes only**. It is **not**
 > a substitute for professional tax advice, a chartered accountant, or the official Income Tax
@@ -21,6 +21,8 @@ FY 2025-26, and tells you which regime is more beneficial for your situation.
 - Deductions: Section 80C, 80D, 80CCD(1B), 80TTA/80TTB, 80E, 80G.
 - Section 87A rebate, surcharge with marginal relief, and 4% health & education cess.
 - Side-by-side Old vs New regime comparison with a recommendation and savings amount.
+- 2025 resident individual income-tax slab estimates for Ireland, the Netherlands, the UK, the US,
+  and Singapore in their local currency.
 
 ## Project Structure
 
