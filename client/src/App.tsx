@@ -68,13 +68,6 @@ function NavBar({ view, setView }: { view: View; setView: (v: View) => void }) {
             >
               Log in
             </button>
-            <button
-              type="button"
-              onClick={() => setView('signup')}
-              className={`font-medium ${view === 'signup' ? 'text-indigo-600' : 'text-slate-600 hover:text-indigo-600'}`}
-            >
-              Sign up
-            </button>
           </>
         )}
       </div>
