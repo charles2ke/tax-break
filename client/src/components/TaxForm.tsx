@@ -81,8 +81,9 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
           <option value="singapore">Singapore</option>
         </select>
         <span className="mt-1 block text-xs text-slate-500">
-          Pick the country whose income-tax rules should apply. India gives a full Old vs New Regime
-          comparison; other countries give a simplified resident estimate.
+          Choose India for the detailed Old vs New Regime comparison. The US estimate includes
+          federal tax and state tax for the selected state; other countries give a simplified
+          resident individual estimate in their local currency.
         </span>
       </label>
 
@@ -102,7 +103,11 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
             label="Gross annual income (local currency)"
             value={annualIncome}
             onChange={setAnnualIncome}
-            helpText="Resident individual estimate. Payroll taxes, credits, allowances, and local taxes are excluded."
+            helpText={
+              country === 'netherlands'
+                ? 'Your annual taxable Box 1 income in euros. The general and labour tax credits are applied automatically; the Netherlands has no provincial or municipal income tax.'
+                : 'Resident individual estimate. Payroll taxes, credits, allowances, and local taxes are excluded.'
+            }
           />
           {country === 'us' && (
             <label className="block">

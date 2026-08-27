@@ -1,4 +1,9 @@
-export type AssessmentYear = 'FY2024-25' | 'FY2025-26';
+export type AssessmentYear =
+  | 'FY2021-22'
+  | 'FY2022-23'
+  | 'FY2023-24'
+  | 'FY2024-25'
+  | 'FY2025-26';
 
 export type TaxCountry = 'india' | 'ireland' | 'netherlands' | 'uk' | 'us' | 'singapore';
 
@@ -114,8 +119,10 @@ interface InternationalTaxResultBase {
   grossIncome: number;
   standardDeduction: number;
   taxableIncome: number;
-  /** National (for the US, federal) income tax. */
+  /** Slab/bracket tax before any non-refundable tax credits (federal tax for the US). */
   incomeTax: number;
+  /** Non-refundable tax credits applied against the slab tax (0 when not modelled). */
+  taxCredits: number;
   totalTaxLiability: number;
   effectiveTaxRate: number;
 }
@@ -156,6 +163,11 @@ export interface RebateConfig {
   incomeLimit: number;
   /** Maximum rebate amount available under section 87A. */
   maxAmount: number;
+  /**
+   * When true, marginal relief applies just above the income limit so that income tax (before cess)
+   * never exceeds the income earned in excess of that limit (new regime, FY 2023-24 onwards).
+   */
+  marginalRelief?: boolean;
 }
 
 export interface RegimeConfig {
@@ -164,6 +176,17 @@ export interface RegimeConfig {
   rebate87A: RebateConfig;
   surchargeSlabs: SurchargeSlab[];
   cessRate: number;
+}
+
+export interface CapitalGainsRates {
+  /** Section 111A - STCG on listed equity shares / equity-oriented mutual funds (STT paid). */
+  equitySTCGRate: number;
+  /** Section 112A - LTCG on listed equity shares / equity-oriented mutual funds (STT paid). */
+  equityLTCGRate: number;
+  /** Annual exemption available on Section 112A LTCG. */
+  equityLTCGExemption: number;
+  /** Section 112 - LTCG on other assets (debt funds, property, unlisted shares, etc). */
+  otherLTCGRate: number;
 }
 
 export interface AssessmentYearConfig {
@@ -182,6 +205,7 @@ export interface AssessmentYearConfig {
   section80TTA: { cap: number };
   section80TTB: { cap: number };
   homeLoanInterestCap: { selfOccupied: number };
+  capitalGains: CapitalGainsRates;
 }
 
 export interface HraExemptionResult {

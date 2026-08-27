@@ -21,9 +21,22 @@ describe('calculateRebate87A', () => {
     expect(rebate).toBe(25000);
   });
 
-  it('denies rebate under new regime (FY2024-25) just above the 7,00,000 threshold', () => {
+  it('applies marginal relief under new regime (FY2024-25) just above the 7,00,000 threshold', () => {
     const config = getConfig('FY2024-25');
     const rebate = calculateRebate87A(700001, 25000.1, config.new.rebate87A);
+    // Tax payable is limited to the Rs 1 of income earned above the rebate threshold.
+    expect(rebate).toBeCloseTo(24999.1);
+  });
+
+  it('withdraws the rebate entirely once income exceeds the marginal relief range', () => {
+    const config = getConfig('FY2024-25');
+    const rebate = calculateRebate87A(800000, 35000, config.new.rebate87A);
+    expect(rebate).toBe(0);
+  });
+
+  it('denies rebate under new regime (FY2022-23) above the threshold, with no marginal relief', () => {
+    const config = getConfig('FY2022-23');
+    const rebate = calculateRebate87A(500001, 12500.1, config.new.rebate87A);
     expect(rebate).toBe(0);
   });
 

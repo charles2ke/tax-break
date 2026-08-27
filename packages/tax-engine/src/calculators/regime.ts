@@ -14,12 +14,15 @@ import { calculateRebate87A } from './rebate';
 import { calculateSlabTax } from './slabTax';
 import { calculateSurcharge } from './surcharge';
 
+/** Maximum house property loss that can be set off against other heads (Section 71(3A)). */
+const HOUSE_PROPERTY_LOSS_SET_OFF_CAP = 200000;
+
 function calculateGrossIncome(
   input: TaxCalculationInput,
   homeLoanInterestCap: number,
   regime: Regime,
   otherSTCG: number,
-): { grossTotalIncome: number } {
+): { grossTotalIncome: number; salaryIncome: number } {
   let salaryIncome = 0;
   if (input.salary) {
     const { basic, hraReceived, rentPaid, cityType, lta, specialAllowance, otherTaxableAllowances } =
@@ -45,6 +48,16 @@ function calculateGrossIncome(
     homeLoanInterestCap,
   );
 
+  // A loss from house property can only be set off against other heads of income up to
+  // Rs 2,00,000 a year (Section 71(3A)); the balance is carried forward. Under the New Regime no
+  // such set-off is allowed at all (Section 115BAC).
+  const housePropertyIncome =
+    houseProperty.incomeFromHouseProperty < 0
+      ? regime === 'new'
+        ? 0
+        : Math.max(houseProperty.incomeFromHouseProperty, -HOUSE_PROPERTY_LOSS_SET_OFF_CAP)
+      : houseProperty.incomeFromHouseProperty;
+
   const otherIncome = input.otherIncome;
   const otherIncomeTotal =
     Math.max(0, otherIncome?.savingsInterest ?? 0) +
@@ -52,10 +65,9 @@ function calculateGrossIncome(
     Math.max(0, otherIncome?.dividendIncome ?? 0) +
     Math.max(0, otherIncome?.otherIncome ?? 0);
 
-  const grossTotalIncome =
-    salaryIncome + houseProperty.incomeFromHouseProperty + otherIncomeTotal + otherSTCG;
+  const grossTotalIncome = salaryIncome + housePropertyIncome + otherIncomeTotal + otherSTCG;
 
-  return { grossTotalIncome };
+  return { grossTotalIncome, salaryIncome };
 }
 
 /**
@@ -71,14 +83,18 @@ export function calculateTaxForRegime(
   const config = configOverride ?? getConfig(input.assessmentYear);
   const regimeConfig = config[regime];
 
-  const capitalGains = calculateCapitalGains(input.capitalGains);
+  const capitalGains = calculateCapitalGains(input.capitalGains, config.capitalGains);
 
-  const { grossTotalIncome } = calculateGrossIncome(
+  const { grossTotalIncome, salaryIncome } = calculateGrossIncome(
     input,
     config.homeLoanInterestCap.selfOccupied,
     regime,
     capitalGains.otherSTCGAddedToIncome,
   );
+
+  // The standard deduction under Section 16(ia) is only available against salary income and
+  // cannot exceed it.
+  const standardDeduction = Math.min(regimeConfig.standardDeduction, salaryIncome);
 
   const deductionsBreakdown: DeductionsBreakdown = calculateDeductions(
     regime,
@@ -86,7 +102,7 @@ export function calculateTaxForRegime(
     config,
     input.deductions,
     input.otherIncome,
-    regimeConfig.standardDeduction,
+    standardDeduction,
   );
 
   const taxableIncome = Math.max(0, grossTotalIncome - deductionsBreakdown.total);
