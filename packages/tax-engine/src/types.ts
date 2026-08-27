@@ -127,7 +127,7 @@ export interface RebateConfig {
   /** Maximum rebate amount available under section 87A. */
   maxAmount: number;
   /**
-   * When true, marginal relief applies just above the income limit so that the tax payable
+   * When true, marginal relief applies just above the income limit so that income tax (before cess)
    * never exceeds the income earned in excess of that limit (new regime, FY 2023-24 onwards).
    */
   marginalRelief?: boolean;
