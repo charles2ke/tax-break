@@ -1,4 +1,5 @@
 import type { AgeCategory, AssessmentYear } from '@tax-break/tax-engine';
+import { assessmentYearConfigs, listAssessmentYears } from '@tax-break/tax-engine';
 import type { FormState } from '../formTypes';
 
 interface Props {
@@ -6,10 +7,11 @@ interface Props {
   onChange: (updater: (form: FormState) => FormState) => void;
 }
 
-const ASSESSMENT_YEARS: { value: AssessmentYear; label: string }[] = [
-  { value: 'FY2024-25', label: 'FY 2024-25 (AY 2025-26)' },
-  { value: 'FY2025-26', label: 'FY 2025-26 (AY 2026-27)' },
-];
+// Derived from the tax engine so the form always offers every supported financial year
+// (the current year and the previous four).
+const ASSESSMENT_YEARS: { value: AssessmentYear; label: string }[] = listAssessmentYears()
+  .map((value) => ({ value, label: assessmentYearConfigs[value].label }))
+  .reverse();
 
 const AGE_CATEGORIES: { value: AgeCategory; label: string }[] = [
   { value: 'below60', label: 'Below 60 years' },
@@ -38,7 +40,9 @@ export function BasicInfoSection({ form, onChange }: Props) {
             ))}
           </select>
           <span className="mt-1 block text-xs text-slate-500">
-            The financial year the income was earned in. Slab rates and limits differ per year.
+            Pick the financial year the income was earned in (its assessment year is shown in
+            brackets). Slab rates, deduction limits and capital gains rates for that year are
+            applied. Returns for the last five years are available.
           </span>
         </label>
         <label className="block">
@@ -55,8 +59,8 @@ export function BasicInfoSection({ form, onChange }: Props) {
             ))}
           </select>
           <span className="mt-1 block text-xs text-slate-500">
-            Your age on the last day of the financial year. Senior citizens get a higher Old Regime
-            exemption limit.
+            Your age at any time during the selected financial year. Senior citizens get a higher
+            basic exemption limit under the Old Regime and the 80TTB interest deduction.
           </span>
         </label>
       </div>

@@ -59,4 +59,21 @@ describe('calculateCapitalGains', () => {
     expect(result.totalCapitalGainsIncome).toBe(0);
     expect(result.totalCapitalGainsTax).toBe(0);
   });
+
+  it('uses the supplied assessment year rates when provided', () => {
+    const preJuly2024Rates = {
+      equitySTCGRate: 0.15,
+      equityLTCGRate: 0.1,
+      equityLTCGExemption: 100000,
+      otherLTCGRate: 0.2,
+    };
+    const result = calculateCapitalGains(
+      { equitySTCG: 100000, equityLTCG: 200000, otherLTCG: 100000 },
+      preJuly2024Rates,
+    );
+    expect(result.equitySTCGTax).toBeCloseTo(15000);
+    expect(result.equityLTCGExemptionUsed).toBe(100000);
+    expect(result.equityLTCGTax).toBeCloseTo(10000);
+    expect(result.otherLTCGTax).toBeCloseTo(20000);
+  });
 });

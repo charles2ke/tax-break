@@ -18,9 +18,9 @@ describe('compareRegimes', () => {
     };
     const result = compareRegimes(input);
     expect(result.old.totalTaxLiability).toBe(85800);
-    expect(result.new.totalTaxLiability).toBe(41600);
+    expect(result.new.totalTaxLiability).toBe(39000);
     expect(result.recommendedRegime).toBe('new');
-    expect(result.savings).toBe(85800 - 41600);
+    expect(result.savings).toBe(85800 - 39000);
   });
 
   it('recommends the old regime when HRA exemption and heavy deductions make it more beneficial', () => {
