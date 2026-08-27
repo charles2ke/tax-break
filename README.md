@@ -98,7 +98,21 @@ npm run lint
 - **Frontend:** React + TypeScript (Vite), Tailwind CSS, Recharts
 - **Backend:** Node.js + Express + TypeScript
 - **Tax engine:** Standalone TypeScript package, unit tested with Vitest
-- **CI:** GitHub Actions (lint + build + test on every PR)
+- **CI/CD:** GitHub Actions (lint + build + test on every PR, plus GitHub Pages deployment for
+  the client)
+
+## GitHub Pages
+
+The frontend is published from `client/dist` to GitHub Pages by
+`.github/workflows/pages.yml` on every push to `main`.
+
+- Live URL: `https://charles2ke.github.io/tax-break/`
+- Pages builds set:
+  - `VITE_BASE_PATH=/tax-break/`
+  - `VITE_CALCULATION_MODE=local`
+
+`VITE_CALCULATION_MODE=local` makes the deployed Pages site run tax calculations directly in the
+browser using `packages/tax-engine`, so it does not depend on a separately hosted backend API.
 
 ## Out of Scope (for now)
 
