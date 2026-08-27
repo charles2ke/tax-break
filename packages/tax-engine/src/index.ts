@@ -8,3 +8,4 @@ export { calculateRebate87A } from './calculators/rebate';
 export { calculateSurcharge } from './calculators/surcharge';
 export { calculateTaxForRegime } from './calculators/regime';
 export { compareRegimes } from './calculators/compare';
+export { calculateInternationalTax } from './calculators/international';

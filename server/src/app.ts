@@ -1,7 +1,16 @@
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
-import { compareRegimes, getConfig, listAssessmentYears } from '@tax-break/tax-engine';
-import { ValidationError, validateTaxCalculationInput } from './validation';
+import {
+  calculateInternationalTax,
+  compareRegimes,
+  getConfig,
+  listAssessmentYears,
+} from '@tax-break/tax-engine';
+import {
+  ValidationError,
+  validateInternationalTaxCalculationInput,
+  validateTaxCalculationInput,
+} from './validation';
 
 const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173'];
 
@@ -40,6 +49,11 @@ export function createApp() {
   });
 
   app.post('/api/calculate', (req: Request, res: Response) => {
+    if (req.body?.country && req.body.country !== 'india') {
+      return res.json(
+        calculateInternationalTax(validateInternationalTaxCalculationInput(req.body)),
+      );
+    }
     const input = validateTaxCalculationInput(req.body);
     const result = compareRegimes(input);
     return res.json(result);

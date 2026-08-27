@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import type { RegimeComparisonResult, TaxCalculationInput } from '@tax-break/tax-engine';
+import type {
+  InternationalTaxCalculationInput,
+  InternationalTaxResult,
+  RegimeComparisonResult,
+  TaxCalculationInput,
+} from '@tax-break/tax-engine';
 import { calculateTax, ApiError } from './api';
 import { LandingPage } from './components/LandingPage';
 import { TaxForm } from './components/TaxForm';
@@ -9,11 +14,13 @@ type View = 'landing' | 'form' | 'results';
 
 function App() {
   const [view, setView] = useState<View>('landing');
-  const [result, setResult] = useState<RegimeComparisonResult | null>(null);
+  const [result, setResult] = useState<RegimeComparisonResult | InternationalTaxResult | null>(
+    null,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
-  const handleSubmit = async (input: TaxCalculationInput) => {
+  const handleSubmit = async (input: TaxCalculationInput | InternationalTaxCalculationInput) => {
     setIsSubmitting(true);
     setErrorMessage(undefined);
     try {
@@ -21,7 +28,9 @@ function App() {
       setResult(response);
       setView('results');
     } catch (err) {
-      setErrorMessage(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
+      setErrorMessage(
+        err instanceof ApiError ? err.message : 'Something went wrong. Please try again.',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -33,7 +42,9 @@ function App() {
       {view === 'form' && (
         <TaxForm onSubmit={handleSubmit} isSubmitting={isSubmitting} errorMessage={errorMessage} />
       )}
-      {view === 'results' && result && <ResultsView result={result} onBack={() => setView('form')} />}
+      {view === 'results' && result && (
+        <ResultsView result={result} onBack={() => setView('form')} />
+      )}
     </div>
   );
 }
