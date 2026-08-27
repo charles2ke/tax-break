@@ -69,6 +69,10 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
           <option value="us">United States</option>
           <option value="singapore">Singapore</option>
         </select>
+        <span className="mt-1 block text-xs text-slate-500">
+          Choose India for the detailed Old vs New Regime comparison. Other countries give a
+          simplified resident individual estimate in their local currency.
+        </span>
       </label>
 
       {country === 'india' ? (

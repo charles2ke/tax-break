@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { AssessmentYear } from '@tax-break/tax-engine';
+import { listAssessmentYears } from '@tax-break/tax-engine';
 import { ApiError, getAdminConfig, resetAdminConfig, updateAdminConfig } from '../api';
 
 interface Props {
   onBack: () => void;
 }
 
-const ASSESSMENT_YEARS: AssessmentYear[] = ['FY2024-25', 'FY2025-26'];
+const ASSESSMENT_YEARS: AssessmentYear[] = [...listAssessmentYears()].reverse();
 
 export function AdminConfigPage({ onBack }: Props) {
   const [assessmentYear, setAssessmentYear] = useState<AssessmentYear>('FY2025-26');

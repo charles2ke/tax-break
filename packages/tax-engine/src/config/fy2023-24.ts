@@ -1,13 +1,15 @@
 import { AssessmentYearConfig } from '../types';
 
 /**
- * Config for FY 2025-26 (AY 2026-27).
+ * Config for FY 2023-24 (AY 2024-25).
  * Old regime slabs unchanged.
- * New regime revised as per Budget 2025 with wider slabs and a higher rebate threshold.
+ * New regime revised as per Budget 2023: wider slabs, standard deduction of Rs 50,000 extended
+ * to the new regime, a Section 87A rebate up to a taxable income of Rs 7,00,000 with marginal
+ * relief, and the top surcharge rate capped at 25%.
  */
-export const fy2025_26: AssessmentYearConfig = {
-  assessmentYear: 'FY2025-26',
-  label: 'FY 2025-26 (AY 2026-27)',
+export const fy2023_24: AssessmentYearConfig = {
+  assessmentYear: 'FY2023-24',
+  label: 'FY 2023-24 (AY 2024-25)',
   old: {
     slabs: {
       below60: [
@@ -41,35 +43,32 @@ export const fy2025_26: AssessmentYearConfig = {
   new: {
     slabs: {
       below60: [
-        { from: 0, to: 400000, rate: 0 },
-        { from: 400000, to: 800000, rate: 0.05 },
-        { from: 800000, to: 1200000, rate: 0.1 },
-        { from: 1200000, to: 1600000, rate: 0.15 },
-        { from: 1600000, to: 2000000, rate: 0.2 },
-        { from: 2000000, to: 2400000, rate: 0.25 },
-        { from: 2400000, to: null, rate: 0.3 },
+        { from: 0, to: 300000, rate: 0 },
+        { from: 300000, to: 600000, rate: 0.05 },
+        { from: 600000, to: 900000, rate: 0.1 },
+        { from: 900000, to: 1200000, rate: 0.15 },
+        { from: 1200000, to: 1500000, rate: 0.2 },
+        { from: 1500000, to: null, rate: 0.3 },
       ],
       '60to80': [
-        { from: 0, to: 400000, rate: 0 },
-        { from: 400000, to: 800000, rate: 0.05 },
-        { from: 800000, to: 1200000, rate: 0.1 },
-        { from: 1200000, to: 1600000, rate: 0.15 },
-        { from: 1600000, to: 2000000, rate: 0.2 },
-        { from: 2000000, to: 2400000, rate: 0.25 },
-        { from: 2400000, to: null, rate: 0.3 },
+        { from: 0, to: 300000, rate: 0 },
+        { from: 300000, to: 600000, rate: 0.05 },
+        { from: 600000, to: 900000, rate: 0.1 },
+        { from: 900000, to: 1200000, rate: 0.15 },
+        { from: 1200000, to: 1500000, rate: 0.2 },
+        { from: 1500000, to: null, rate: 0.3 },
       ],
       above80: [
-        { from: 0, to: 400000, rate: 0 },
-        { from: 400000, to: 800000, rate: 0.05 },
-        { from: 800000, to: 1200000, rate: 0.1 },
-        { from: 1200000, to: 1600000, rate: 0.15 },
-        { from: 1600000, to: 2000000, rate: 0.2 },
-        { from: 2000000, to: 2400000, rate: 0.25 },
-        { from: 2400000, to: null, rate: 0.3 },
+        { from: 0, to: 300000, rate: 0 },
+        { from: 300000, to: 600000, rate: 0.05 },
+        { from: 600000, to: 900000, rate: 0.1 },
+        { from: 900000, to: 1200000, rate: 0.15 },
+        { from: 1200000, to: 1500000, rate: 0.2 },
+        { from: 1500000, to: null, rate: 0.3 },
       ],
     },
-    standardDeduction: 75000,
-    rebate87A: { incomeLimit: 1200000, maxAmount: 60000, marginalRelief: true },
+    standardDeduction: 50000,
+    rebate87A: { incomeLimit: 700000, maxAmount: 25000, marginalRelief: true },
     surchargeSlabs: [
       { threshold: 5000000, rate: 0.1 },
       { threshold: 10000000, rate: 0.15 },
@@ -89,9 +88,9 @@ export const fy2025_26: AssessmentYearConfig = {
   section80TTB: { cap: 50000 },
   homeLoanInterestCap: { selfOccupied: 200000 },
   capitalGains: {
-    equitySTCGRate: 0.2,
-    equityLTCGRate: 0.125,
-    equityLTCGExemption: 125000,
-    otherLTCGRate: 0.125,
+    equitySTCGRate: 0.15,
+    equityLTCGRate: 0.1,
+    equityLTCGExemption: 100000,
+    otherLTCGRate: 0.2,
   },
 };
