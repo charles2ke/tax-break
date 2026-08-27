@@ -246,8 +246,9 @@ function InternationalResultsView({
         <InternationalRow label="Effective tax rate" value={result.effectiveTaxRate} suffix="%" />
       </dl>
       <p className="mt-8 text-xs text-slate-400">
-        This resident-individual estimate excludes payroll/social-security contributions,
-        allowances, and local taxes, and only applies tax credits where they are shown above.
+        This resident-individual estimate excludes payroll/social-security contributions (such as
+        Irish USC and PRSI), local taxes, and other country-specific reliefs. It only applies tax
+        credits where they are shown above.
         {result.country === 'us' &&
           ' US figures assume a single filer; city and county income taxes are not included.'}
         {result.country === 'netherlands' &&

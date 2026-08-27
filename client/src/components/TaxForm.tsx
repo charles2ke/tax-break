@@ -106,7 +106,7 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
             helpText={
               country === 'netherlands'
                 ? 'Your annual taxable Box 1 income in euros. The general and labour tax credits are applied automatically; the Netherlands has no provincial or municipal income tax.'
-                : 'Resident individual estimate. Payroll taxes, credits, allowances, and local taxes are excluded.'
+                : 'Total gross income for the year in the local currency. Payroll/social-security contributions and local taxes are excluded.'
             }
           />
           {country === 'us' && (

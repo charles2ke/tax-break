@@ -50,7 +50,9 @@ export function BasicInfoSection({ form, onChange }: Props) {
           <select
             className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
             value={form.ageCategory}
-            onChange={(e) => onChange((f) => ({ ...f, ageCategory: e.target.value as AgeCategory }))}
+            onChange={(e) =>
+              onChange((f) => ({ ...f, ageCategory: e.target.value as AgeCategory }))
+            }
           >
             {AGE_CATEGORIES.map((ac) => (
               <option key={ac.value} value={ac.value}>
