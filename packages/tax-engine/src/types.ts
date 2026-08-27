@@ -99,7 +99,10 @@ export interface InternationalTaxResult {
   grossIncome: number;
   standardDeduction: number;
   taxableIncome: number;
+  /** Slab/bracket tax before any non-refundable tax credits. */
   incomeTax: number;
+  /** Non-refundable tax credits applied against the slab tax (0 when not modelled). */
+  taxCredits: number;
   totalTaxLiability: number;
   effectiveTaxRate: number;
 }
