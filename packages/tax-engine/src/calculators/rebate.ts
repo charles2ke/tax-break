@@ -5,7 +5,7 @@ import { RebateConfig } from '../types';
  * income does not exceed the configured limit, capped at the maximum rebate amount.
  *
  * Where the configuration enables marginal relief (the New Regime from FY 2023-24 onwards), a
- * partial rebate is granted just above the limit so that the tax payable never exceeds the
+ * partial rebate is granted just above the limit so that income tax before cess never exceeds the
  * income earned in excess of that limit.
  */
 export function calculateRebate87A(taxableIncome: number, taxBeforeRebate: number, config: RebateConfig): number {
