@@ -69,6 +69,9 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
           <option value="us">United States</option>
           <option value="singapore">Singapore</option>
         </select>
+        <span className="mt-1 block text-xs text-slate-500">
+          Country whose resident individual income-tax rules should be applied to your income.
+        </span>
       </label>
 
       {country === 'india' ? (
@@ -87,7 +90,11 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
             label="Gross annual income (local currency)"
             value={annualIncome}
             onChange={setAnnualIncome}
-            helpText="Resident individual estimate. Payroll taxes, credits, allowances, and local taxes are excluded."
+            helpText={
+              country === 'netherlands'
+                ? 'Your annual taxable Box 1 income in euros. The general and labour tax credits are applied automatically; the Netherlands has no provincial or municipal income tax.'
+                : 'Total gross income for the year in the local currency. Payroll taxes, credits, allowances, and local taxes are excluded.'
+            }
           />
         </section>
       )}
