@@ -90,34 +90,52 @@ export type UsState =
   | 'NJ' | 'NM' | 'NY' | 'NC' | 'ND' | 'OH' | 'OK' | 'OR' | 'PA' | 'RI'
   | 'SC' | 'SD' | 'TN' | 'TX' | 'UT' | 'VT' | 'VA' | 'WA' | 'WV' | 'WI' | 'WY';
 
-export interface InternationalTaxCalculationInput {
-  country: Exclude<TaxCountry, 'india'>;
+type InternationalTaxCalculationBase = {
   /** Annual gross income in the country's local currency. */
   annualIncome: number;
-  /**
-   * US only: state of residence, used to estimate state income tax on top of the federal
-   * liability. Omit for a federal-only estimate.
-   */
-  state?: UsState;
-}
+};
 
-export interface InternationalTaxResult {
-  country: Exclude<TaxCountry, 'india'>;
+export type InternationalTaxCalculationInput =
+  | (InternationalTaxCalculationBase & {
+      country: 'us';
+      /**
+       * State of residence, used to estimate state income tax on top of the federal liability.
+       * Omit for a federal-only estimate.
+       */
+      state?: UsState;
+    })
+  | (InternationalTaxCalculationBase & {
+      country: Exclude<TaxCountry, 'india' | 'us'>;
+      state?: never;
+    });
+
+interface InternationalTaxResultBase {
   currency: string;
   grossIncome: number;
   standardDeduction: number;
   taxableIncome: number;
   /** National (for the US, federal) income tax. */
   incomeTax: number;
-  /** US only: the state of residence the state tax was estimated for. */
-  state?: UsState;
-  /** US only: estimated state income tax. */
-  stateTax?: number;
-  /** US only: income subject to state income tax after the state deduction/exemption. */
-  stateTaxableIncome?: number;
   totalTaxLiability: number;
   effectiveTaxRate: number;
 }
+
+export type InternationalTaxResult =
+  | (InternationalTaxResultBase & {
+      country: 'us';
+      /** The state of residence the state tax was estimated for. */
+      state?: UsState;
+      /** Estimated state income tax. */
+      stateTax?: number;
+      /** Income subject to state income tax after the state deduction/exemption. */
+      stateTaxableIncome?: number;
+    })
+  | (InternationalTaxResultBase & {
+      country: Exclude<TaxCountry, 'india' | 'us'>;
+      state?: never;
+      stateTax?: never;
+      stateTaxableIncome?: never;
+    });
 
 export interface SlabBracket {
   /** Lower bound of the bracket (inclusive). */
