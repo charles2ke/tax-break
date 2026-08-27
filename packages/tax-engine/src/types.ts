@@ -95,6 +95,8 @@ export interface InternationalTaxResult {
   standardDeduction: number;
   taxableIncome: number;
   incomeTax: number;
+  /** Non-refundable tax credits applied against the income tax (e.g. Ireland's PAYE credits). */
+  taxCredits: number;
   totalTaxLiability: number;
   effectiveTaxRate: number;
 }

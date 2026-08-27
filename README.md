@@ -22,7 +22,8 @@ estimates for Ireland, the Netherlands, the UK, the US, and Singapore.
 - Section 87A rebate, surcharge with marginal relief, and 4% health & education cess.
 - Side-by-side Old vs New regime comparison with a recommendation and savings amount.
 - 2025 resident individual income-tax slab estimates for Ireland, the Netherlands, the UK, the US,
-  and Singapore in their local currency.
+  and Singapore in their local currency, including Ireland's personal and employee (PAYE) tax
+  credits.
 - Capital gains tax (equity/other STCG and LTCG, Sections 111A/112/112A) factored into the regime
   comparison.
 - Advance tax installment schedule (15%/45%/75%/100% due-date breakdown) with an estimate of

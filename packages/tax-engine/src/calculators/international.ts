@@ -4,16 +4,21 @@ import { InternationalTaxCalculationInput, InternationalTaxResult, SlabBracket }
 interface CountryTaxConfig {
   currency: string;
   standardDeduction: number;
+  /** Non-refundable credits deducted from the computed income tax. */
+  taxCredits: number;
   slabs: SlabBracket[];
 }
 
 // 2025 resident individual income-tax rates. This estimator excludes payroll/social-security
-// contributions, local taxes, credits, allowances, and country-specific reliefs.
+// contributions (e.g. Irish USC/PRSI), local taxes, allowances, and country-specific reliefs.
 const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], CountryTaxConfig> = {
   ireland: {
     currency: 'EUR',
     standardDeduction: 0,
+    // Single PAYE employee: personal tax credit (EUR 2,000) + employee tax credit (EUR 2,000).
+    taxCredits: 4000,
     slabs: [
+      // Standard rate cut-off point for a single individual in 2025.
       { from: 0, to: 44000, rate: 0.2 },
       { from: 44000, to: null, rate: 0.4 },
     ],
@@ -21,6 +26,7 @@ const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], Count
   netherlands: {
     currency: 'EUR',
     standardDeduction: 0,
+    taxCredits: 0,
     slabs: [
       { from: 0, to: 38441, rate: 0.3582 },
       { from: 38441, to: 76817, rate: 0.3748 },
@@ -30,6 +36,7 @@ const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], Count
   uk: {
     currency: 'GBP',
     standardDeduction: 12570,
+    taxCredits: 0,
     slabs: [
       { from: 0, to: 37700, rate: 0.2 },
       { from: 37700, to: 125140, rate: 0.4 },
@@ -39,6 +46,7 @@ const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], Count
   us: {
     currency: 'USD',
     standardDeduction: 15000,
+    taxCredits: 0,
     slabs: [
       { from: 0, to: 11925, rate: 0.1 },
       { from: 11925, to: 48475, rate: 0.12 },
@@ -52,6 +60,7 @@ const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], Count
   singapore: {
     currency: 'SGD',
     standardDeduction: 0,
+    taxCredits: 0,
     slabs: [
       { from: 0, to: 20000, rate: 0 },
       { from: 20000, to: 30000, rate: 0.02 },
@@ -76,6 +85,9 @@ export function calculateInternationalTax(
   const standardDeduction = Math.min(grossIncome, config.standardDeduction);
   const taxableIncome = grossIncome - standardDeduction;
   const incomeTax = Math.round(calculateSlabTax(taxableIncome, config.slabs) * 100) / 100;
+  // Credits are non-refundable: they can reduce the liability to zero but never below it.
+  const taxCredits = Math.min(incomeTax, config.taxCredits);
+  const totalTaxLiability = Math.round((incomeTax - taxCredits) * 100) / 100;
 
   return {
     country: input.country,
@@ -84,7 +96,8 @@ export function calculateInternationalTax(
     standardDeduction,
     taxableIncome,
     incomeTax,
-    totalTaxLiability: incomeTax,
-    effectiveTaxRate: grossIncome > 0 ? (incomeTax / grossIncome) * 100 : 0,
+    taxCredits,
+    totalTaxLiability,
+    effectiveTaxRate: grossIncome > 0 ? (totalTaxLiability / grossIncome) * 100 : 0,
   };
 }
