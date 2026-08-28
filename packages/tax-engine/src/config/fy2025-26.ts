@@ -69,7 +69,7 @@ export const fy2025_26: AssessmentYearConfig = {
       ],
     },
     standardDeduction: 75000,
-    rebate87A: { incomeLimit: 1200000, maxAmount: 60000 },
+    rebate87A: { incomeLimit: 1200000, maxAmount: 60000, marginalRelief: true },
     surchargeSlabs: [
       { threshold: 5000000, rate: 0.1 },
       { threshold: 10000000, rate: 0.15 },
@@ -88,4 +88,10 @@ export const fy2025_26: AssessmentYearConfig = {
   section80TTA: { cap: 10000 },
   section80TTB: { cap: 50000 },
   homeLoanInterestCap: { selfOccupied: 200000 },
+  capitalGains: {
+    equitySTCGRate: 0.2,
+    equityLTCGRate: 0.125,
+    equityLTCGExemption: 125000,
+    otherLTCGRate: 0.125,
+  },
 };

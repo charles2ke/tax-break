@@ -3,7 +3,9 @@ import { AssessmentYearConfig } from '../types';
 /**
  * Config for FY 2024-25 (AY 2025-26).
  * Old regime slabs unchanged since FY 2023-24.
- * New regime slabs as per Budget 2023 (applicable for FY 2023-24 and FY 2024-25).
+ * New regime slabs as per Budget 2023 (unchanged for FY 2024-25), with the standard deduction
+ * raised to Rs 75,000 by the July 2024 Budget.
+ * Capital gains rates are the post 23 July 2024 rates.
  */
 export const fy2024_25: AssessmentYearConfig = {
   assessmentYear: 'FY2024-25',
@@ -65,8 +67,8 @@ export const fy2024_25: AssessmentYearConfig = {
         { from: 1500000, to: null, rate: 0.3 },
       ],
     },
-    standardDeduction: 50000,
-    rebate87A: { incomeLimit: 700000, maxAmount: 25000 },
+    standardDeduction: 75000,
+    rebate87A: { incomeLimit: 700000, maxAmount: 25000, marginalRelief: true },
     surchargeSlabs: [
       { threshold: 5000000, rate: 0.1 },
       { threshold: 10000000, rate: 0.15 },
@@ -85,4 +87,10 @@ export const fy2024_25: AssessmentYearConfig = {
   section80TTA: { cap: 10000 },
   section80TTB: { cap: 50000 },
   homeLoanInterestCap: { selfOccupied: 200000 },
+  capitalGains: {
+    equitySTCGRate: 0.2,
+    equityLTCGRate: 0.125,
+    equityLTCGExemption: 125000,
+    otherLTCGRate: 0.125,
+  },
 };

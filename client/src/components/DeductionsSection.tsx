@@ -37,7 +37,7 @@ export function DeductionsSection({ form, onChange }: Props) {
           label="Section 80CCD(1B) - NPS"
           value={deductions.section80CCD1B}
           onChange={(v) => update({ section80CCD1B: v })}
-          helpText="Additional ₹50,000 over and above 80C."
+          helpText="Your own contribution to the National Pension System: an additional ₹50,000 over and above the 80C limit."
         />
         <NumberField
           label="80D - Health Insurance (Self & Family)"
@@ -51,7 +51,12 @@ export function DeductionsSection({ form, onChange }: Props) {
             checked={deductions.section80D.selfSenior}
             onChange={(e) => update80D({ selfSenior: e.target.checked })}
           />
-          <span className="text-sm text-slate-700">I am a senior citizen (60+)</span>
+          <span className="text-sm text-slate-700">
+            I am a senior citizen (60+)
+            <span className="block text-xs text-slate-500">
+              Raises the 80D cap for self &amp; family from ₹25,000 to ₹50,000.
+            </span>
+          </span>
         </label>
         <NumberField
           label="80D - Health Insurance (Parents)"
@@ -65,7 +70,12 @@ export function DeductionsSection({ form, onChange }: Props) {
             checked={deductions.section80D.parentsSenior}
             onChange={(e) => update80D({ parentsSenior: e.target.checked })}
           />
-          <span className="text-sm text-slate-700">Parents are senior citizens (60+)</span>
+          <span className="text-sm text-slate-700">
+            Parents are senior citizens (60+)
+            <span className="block text-xs text-slate-500">
+              Raises the 80D cap for parents from ₹25,000 to ₹50,000.
+            </span>
+          </span>
         </label>
         <NumberField
           label="80TTA / 80TTB - Savings Interest"
@@ -87,13 +97,13 @@ export function DeductionsSection({ form, onChange }: Props) {
           label="Section 80E - Education Loan Interest"
           value={deductions.section80E}
           onChange={(v) => update({ section80E: v })}
-          helpText="No upper cap."
+          helpText="Interest paid on an education loan for higher studies. No upper cap, available for up to 8 years."
         />
         <NumberField
           label="Section 80G - Donations"
           value={deductions.section80G}
           onChange={(v) => update({ section80G: v })}
-          helpText="Enter eligible donation amount."
+          helpText="Enter the eligible (50% or 100%) donation amount for approved funds; cash donations above ₹2,000 do not qualify."
         />
       </div>
     </section>

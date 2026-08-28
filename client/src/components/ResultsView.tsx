@@ -8,11 +8,15 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { InternationalTaxResult, RegimeComparisonResult } from '@tax-break/tax-engine';
+import type { InternationalTaxResult, RegimeComparisonResult, TaxCalculationInput } from '@tax-break/tax-engine';
+import { AdvanceTaxAndItrSection } from './AdvanceTaxAndItrSection';
+import { SaveExportActions } from './SaveExportActions';
 
 interface Props {
   result: RegimeComparisonResult | InternationalTaxResult;
+  input?: TaxCalculationInput;
   onBack: () => void;
+  onRequireLogin?: () => void;
 }
 
 function formatCurrency(amount: number, currency = 'INR'): string {
@@ -23,11 +27,12 @@ function formatCurrency(amount: number, currency = 'INR'): string {
   }).format(amount);
 }
 
-export function ResultsView({ result, onBack }: Props) {
+export function ResultsView({ result, input, onBack, onRequireLogin }: Props) {
   if ('country' in result) {
     return <InternationalResultsView result={result} onBack={onBack} />;
   }
   const { old: oldRegime, new: newRegime, recommendedRegime, savings } = result;
+  const recommended = recommendedRegime === 'old' ? oldRegime : newRegime;
 
   const chartData = [
     {
@@ -115,6 +120,11 @@ export function ResultsView({ result, onBack }: Props) {
               newR={newRegime.taxAfterRebate}
             />
             <Row label="Surcharge" old={oldRegime.surcharge} newR={newRegime.surcharge} />
+            <Row
+              label="Capital Gains Tax"
+              old={oldRegime.capitalGains.totalCapitalGainsTax}
+              newR={newRegime.capitalGains.totalCapitalGainsTax}
+            />
             <Row label="Health & Education Cess (4%)" old={oldRegime.cess} newR={newRegime.cess} />
             <tr className="font-semibold">
               <td className="py-2 pr-4">Total Tax Liability</td>
@@ -133,11 +143,27 @@ export function ResultsView({ result, onBack }: Props) {
         </table>
       </div>
 
+      {input && (
+        <AdvanceTaxAndItrSection
+          assessmentYear={input.assessmentYear}
+          totalTaxLiability={recommended.totalTaxLiability}
+          taxAlreadyPaid={input.taxAlreadyPaid ?? 0}
+          hasCapitalGains={recommended.capitalGains.totalCapitalGainsIncome > 0}
+          hasHouseProperty={Boolean(input.houseProperty)}
+          totalIncome={recommended.grossTotalIncome}
+        />
+      )}
+
+      {input && onRequireLogin && (
+        <SaveExportActions input={input} result={result} onRequireLogin={onRequireLogin} />
+      )}
+
       <p className="mt-10 text-xs text-slate-400">
         This calculation is for informational and estimation purposes only. It is not a substitute
         for professional tax advice or official e-filing.
       </p>
     </div>
+
   );
 }
 
@@ -182,8 +208,37 @@ function InternationalResultsView({
           value={result.taxableIncome}
           currency={result.currency}
         />
+        {result.country === 'us' ? (
+          <>
+            <InternationalRow
+              label="Estimated federal income tax"
+              value={result.incomeTax}
+              currency={result.currency}
+            />
+            {result.stateTax !== undefined && (
+              <InternationalRow
+                label={`Estimated state income tax (${result.state})`}
+                value={result.stateTax}
+                currency={result.currency}
+              />
+            )}
+          </>
+        ) : result.taxCredits > 0 ? (
+          <>
+            <InternationalRow
+              label="Income tax before credits"
+              value={result.incomeTax}
+              currency={result.currency}
+            />
+            <InternationalRow
+              label="Tax credits"
+              value={result.taxCredits}
+              currency={result.currency}
+            />
+          </>
+        ) : null}
         <InternationalRow
-          label="Estimated income tax"
+          label={result.country === 'us' ? 'Total estimated tax' : 'Estimated income tax'}
           value={result.totalTaxLiability}
           currency={result.currency}
           strong
@@ -191,9 +246,15 @@ function InternationalResultsView({
         <InternationalRow label="Effective tax rate" value={result.effectiveTaxRate} suffix="%" />
       </dl>
       <p className="mt-8 text-xs text-slate-400">
-        This resident-individual estimate excludes payroll/social-security contributions, tax
-        credits, allowances, and local taxes. Confirm your return with the official filing service
-        or a qualified professional.
+        This resident-individual estimate excludes payroll/social-security contributions (such as
+        Irish USC and PRSI), local taxes, and other country-specific reliefs. It only applies tax
+        credits where they are shown above.
+        {result.country === 'us' &&
+          ' US figures assume a single filer; city and county income taxes are not included.'}
+        {result.country === 'netherlands' &&
+          ' The Netherlands has no provincial or municipal income tax; Box 1 rates for taxpayers' +
+            ' below the AOW age are used, including the general and labour tax credits.'}{' '}
+        Confirm your return with the official filing service or a qualified professional.
       </p>
     </div>
   );

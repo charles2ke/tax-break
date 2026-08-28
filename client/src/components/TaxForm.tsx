@@ -3,7 +3,9 @@ import type {
   InternationalTaxCalculationInput,
   TaxCalculationInput,
   TaxCountry,
+  UsState,
 } from '@tax-break/tax-engine';
+import { listUsStates } from '@tax-break/tax-engine';
 import type { FormState } from '../formTypes';
 import { initialFormState } from '../formTypes';
 import { BasicInfoSection } from './BasicInfoSection';
@@ -11,7 +13,10 @@ import { SalarySection } from './SalarySection';
 import { HousePropertySection } from './HousePropertySection';
 import { OtherIncomeSection } from './OtherIncomeSection';
 import { DeductionsSection } from './DeductionsSection';
+import { CapitalGainsSection } from './CapitalGainsSection';
 import { NumberField } from './NumberField';
+
+const US_STATES = listUsStates();
 
 interface Props {
   onSubmit: (input: TaxCalculationInput | InternationalTaxCalculationInput) => void;
@@ -33,6 +38,8 @@ function toTaxCalculationInput(form: FormState): TaxCalculationInput {
       section80E: form.deductions.section80E,
       section80G: form.deductions.section80G,
     },
+    capitalGains: form.capitalGains,
+    taxAlreadyPaid: form.taxAlreadyPaid,
   };
 }
 
@@ -40,6 +47,7 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
   const [form, setForm] = useState<FormState>(initialFormState);
   const [country, setCountry] = useState<TaxCountry>('india');
   const [annualIncome, setAnnualIncome] = useState(0);
+  const [usState, setUsState] = useState<UsState>('CA');
 
   const handleChange = (updater: (f: FormState) => FormState) => setForm(updater);
 
@@ -48,7 +56,13 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
       className="mx-auto max-w-3xl space-y-10 px-4 py-10"
       onSubmit={(e) => {
         e.preventDefault();
-        onSubmit(country === 'india' ? toTaxCalculationInput(form) : { country, annualIncome });
+        if (country === 'india') {
+          onSubmit(toTaxCalculationInput(form));
+        } else if (country === 'us') {
+          onSubmit({ country, annualIncome, state: usState });
+        } else {
+          onSubmit({ country, annualIncome });
+        }
       }}
     >
       <h1 className="text-2xl font-bold text-slate-900">Income & Deduction Details</h1>
@@ -66,6 +80,11 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
           <option value="us">United States</option>
           <option value="singapore">Singapore</option>
         </select>
+        <span className="mt-1 block text-xs text-slate-500">
+          Choose India for the detailed Old vs New Regime comparison. The US estimate includes
+          federal tax and state tax for the selected state; other countries give a simplified
+          resident individual estimate in their local currency.
+        </span>
       </label>
 
       {country === 'india' ? (
@@ -75,6 +94,7 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
           <HousePropertySection form={form} onChange={handleChange} />
           <OtherIncomeSection form={form} onChange={handleChange} />
           <DeductionsSection form={form} onChange={handleChange} />
+          <CapitalGainsSection form={form} onChange={handleChange} />
         </>
       ) : (
         <section className="space-y-4">
@@ -83,8 +103,32 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
             label="Gross annual income (local currency)"
             value={annualIncome}
             onChange={setAnnualIncome}
-            helpText="Resident individual estimate. Payroll taxes, credits, allowances, and local taxes are excluded."
+            helpText={
+              country === 'netherlands'
+                ? 'Your annual taxable Box 1 income in euros. The general and labour tax credits are applied automatically; the Netherlands has no provincial or municipal income tax.'
+                : 'Total gross income for the year in the local currency. Payroll/social-security contributions and local taxes are excluded.'
+            }
           />
+          {country === 'us' && (
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">State of residence</span>
+              <select
+                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
+                value={usState}
+                onChange={(e) => setUsState(e.target.value as UsState)}
+              >
+                {US_STATES.map((state) => (
+                  <option key={state.code} value={state.code}>
+                    {state.name}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-xs text-slate-500">
+                State income tax is added to the federal estimate for a single filer. City and
+                county income taxes (e.g. New York City, Maryland counties) are not included.
+              </span>
+            </label>
+          )}
         </section>
       )}
 

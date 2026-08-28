@@ -1,4 +1,9 @@
-export type AssessmentYear = 'FY2024-25' | 'FY2025-26';
+export type AssessmentYear =
+  | 'FY2021-22'
+  | 'FY2022-23'
+  | 'FY2023-24'
+  | 'FY2024-25'
+  | 'FY2025-26';
 
 export type TaxCountry = 'india' | 'ireland' | 'netherlands' | 'uk' | 'us' | 'singapore';
 
@@ -57,6 +62,17 @@ export interface DeductionsInput {
   section80G?: number;
 }
 
+export interface CapitalGainsInput {
+  /** Section 111A - STCG on listed equity shares / equity-oriented mutual funds (STT paid). */
+  equitySTCG?: number;
+  /** Section 112A - LTCG on listed equity shares / equity-oriented mutual funds (STT paid). */
+  equityLTCG?: number;
+  /** STCG on other assets (debt funds, property, unlisted shares) - taxed at slab rates. */
+  otherSTCG?: number;
+  /** Section 112 - LTCG on other assets (debt funds, property, unlisted shares, etc). */
+  otherLTCG?: number;
+}
+
 export interface TaxCalculationInput {
   assessmentYear: AssessmentYear;
   ageCategory: AgeCategory;
@@ -64,24 +80,69 @@ export interface TaxCalculationInput {
   houseProperty?: HousePropertyInput;
   otherIncome?: OtherIncomeInput;
   deductions?: DeductionsInput;
+  capitalGains?: CapitalGainsInput;
+  /** Additional income sources used only for ITR form recommendation, not tax calculation. */
+  otherIncomeSources?: ItrRecommenderInput;
+  /** Tax already paid via TDS/TCS/self-assessment, used for advance tax computation. */
+  taxAlreadyPaid?: number;
 }
 
-export interface InternationalTaxCalculationInput {
-  country: Exclude<TaxCountry, 'india'>;
+/** Two-letter postal codes for the 50 US states plus the District of Columbia. */
+export type UsState =
+  | 'AL' | 'AK' | 'AZ' | 'AR' | 'CA' | 'CO' | 'CT' | 'DE' | 'DC' | 'FL'
+  | 'GA' | 'HI' | 'ID' | 'IL' | 'IN' | 'IA' | 'KS' | 'KY' | 'LA' | 'ME'
+  | 'MD' | 'MA' | 'MI' | 'MN' | 'MS' | 'MO' | 'MT' | 'NE' | 'NV' | 'NH'
+  | 'NJ' | 'NM' | 'NY' | 'NC' | 'ND' | 'OH' | 'OK' | 'OR' | 'PA' | 'RI'
+  | 'SC' | 'SD' | 'TN' | 'TX' | 'UT' | 'VT' | 'VA' | 'WA' | 'WV' | 'WI' | 'WY';
+
+type InternationalTaxCalculationBase = {
   /** Annual gross income in the country's local currency. */
   annualIncome: number;
-}
+};
 
-export interface InternationalTaxResult {
-  country: Exclude<TaxCountry, 'india'>;
+export type InternationalTaxCalculationInput =
+  | (InternationalTaxCalculationBase & {
+      country: 'us';
+      /**
+       * State of residence, used to estimate state income tax on top of the federal liability.
+       * Omit for a federal-only estimate.
+       */
+      state?: UsState;
+    })
+  | (InternationalTaxCalculationBase & {
+      country: Exclude<TaxCountry, 'india' | 'us'>;
+      state?: never;
+    });
+
+interface InternationalTaxResultBase {
   currency: string;
   grossIncome: number;
   standardDeduction: number;
   taxableIncome: number;
+  /** Slab/bracket tax before any non-refundable tax credits (federal tax for the US). */
   incomeTax: number;
+  /** Non-refundable tax credits applied against the slab tax (0 when not modelled). */
+  taxCredits: number;
   totalTaxLiability: number;
   effectiveTaxRate: number;
 }
+
+export type InternationalTaxResult =
+  | (InternationalTaxResultBase & {
+      country: 'us';
+      /** The state of residence the state tax was estimated for. */
+      state?: UsState;
+      /** Estimated state income tax. */
+      stateTax?: number;
+      /** Income subject to state income tax after the state deduction/exemption. */
+      stateTaxableIncome?: number;
+    })
+  | (InternationalTaxResultBase & {
+      country: Exclude<TaxCountry, 'india' | 'us'>;
+      state?: never;
+      stateTax?: never;
+      stateTaxableIncome?: never;
+    });
 
 export interface SlabBracket {
   /** Lower bound of the bracket (inclusive). */
@@ -102,6 +163,11 @@ export interface RebateConfig {
   incomeLimit: number;
   /** Maximum rebate amount available under section 87A. */
   maxAmount: number;
+  /**
+   * When true, marginal relief applies just above the income limit so that income tax (before cess)
+   * never exceeds the income earned in excess of that limit (new regime, FY 2023-24 onwards).
+   */
+  marginalRelief?: boolean;
 }
 
 export interface RegimeConfig {
@@ -110,6 +176,17 @@ export interface RegimeConfig {
   rebate87A: RebateConfig;
   surchargeSlabs: SurchargeSlab[];
   cessRate: number;
+}
+
+export interface CapitalGainsRates {
+  /** Section 111A - STCG on listed equity shares / equity-oriented mutual funds (STT paid). */
+  equitySTCGRate: number;
+  /** Section 112A - LTCG on listed equity shares / equity-oriented mutual funds (STT paid). */
+  equityLTCGRate: number;
+  /** Annual exemption available on Section 112A LTCG. */
+  equityLTCGExemption: number;
+  /** Section 112 - LTCG on other assets (debt funds, property, unlisted shares, etc). */
+  otherLTCGRate: number;
 }
 
 export interface AssessmentYearConfig {
@@ -128,6 +205,7 @@ export interface AssessmentYearConfig {
   section80TTA: { cap: number };
   section80TTB: { cap: number };
   homeLoanInterestCap: { selfOccupied: number };
+  capitalGains: CapitalGainsRates;
 }
 
 export interface HraExemptionResult {
@@ -156,6 +234,20 @@ export interface DeductionsBreakdown {
   total: number;
 }
 
+export interface CapitalGainsBreakdown {
+  equitySTCG: number;
+  equityLTCG: number;
+  otherSTCG: number;
+  otherLTCG: number;
+  equitySTCGTax: number;
+  equityLTCGExemptionUsed: number;
+  equityLTCGTax: number;
+  otherLTCGTax: number;
+  otherSTCGAddedToIncome: number;
+  totalCapitalGainsTax: number;
+  totalCapitalGainsIncome: number;
+}
+
 export interface TaxBreakdown {
   regime: Regime;
   grossTotalIncome: number;
@@ -168,6 +260,7 @@ export interface TaxBreakdown {
   surcharge: number;
   marginalRelief: number;
   cess: number;
+  capitalGains: CapitalGainsBreakdown;
   totalTaxLiability: number;
   effectiveTaxRate: number;
 }
@@ -177,4 +270,45 @@ export interface RegimeComparisonResult {
   new: TaxBreakdown;
   recommendedRegime: Regime;
   savings: number;
+}
+
+/** Quarterly advance tax installment schedule per Section 211. */
+export interface AdvanceTaxInstallment {
+  label: string;
+  dueDate: string;
+  cumulativePercentage: number;
+  cumulativeAmountDue: number;
+  amountDueThisInstallment: number;
+}
+
+export interface AdvanceTaxResult {
+  totalTaxLiability: number;
+  taxAlreadyPaid: number;
+  netTaxPayable: number;
+  advanceTaxApplicable: boolean;
+  installments: AdvanceTaxInstallment[];
+  interestSection234B: number;
+  interestSection234C: number;
+  totalInterest: number;
+}
+
+export type ItrForm = 'ITR-1' | 'ITR-2' | 'ITR-3' | 'ITR-4';
+
+export interface ItrRecommenderInput {
+  hasSalaryIncome?: boolean;
+  hasSingleHouseProperty?: boolean;
+  hasMultipleHouseProperties?: boolean;
+  hasCapitalGains?: boolean;
+  hasBusinessOrProfessionIncome?: boolean;
+  isPresumptiveTaxationScheme?: boolean;
+  hasForeignAssetsOrIncome?: boolean;
+  isCompanyDirector?: boolean;
+  hasUnlistedEquityShares?: boolean;
+  totalIncome?: number;
+  isResidentIndividual?: boolean;
+}
+
+export interface ItrRecommendation {
+  recommendedForm: ItrForm;
+  reasons: string[];
 }

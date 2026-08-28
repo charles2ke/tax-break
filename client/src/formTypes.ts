@@ -35,6 +35,13 @@ export interface FormState {
     section80E: number;
     section80G: number;
   };
+  capitalGains: {
+    equitySTCG: number;
+    equityLTCG: number;
+    otherSTCG: number;
+    otherLTCG: number;
+  };
+  taxAlreadyPaid: number;
 }
 
 export const initialFormState: FormState = {
@@ -72,4 +79,11 @@ export const initialFormState: FormState = {
     section80E: 0,
     section80G: 0,
   },
+  capitalGains: {
+    equitySTCG: 0,
+    equityLTCG: 0,
+    otherSTCG: 0,
+    otherLTCG: 0,
+  },
+  taxAlreadyPaid: 0,
 };

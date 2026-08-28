@@ -2,7 +2,9 @@ import {
   AgeCategory,
   AssessmentYear,
   InternationalTaxCalculationInput,
+  ItrRecommenderInput,
   listAssessmentYears,
+  listUsStates,
   TaxCalculationInput,
 } from '@tax-break/tax-engine';
 
@@ -116,6 +118,19 @@ export function validateTaxCalculationInput(body: unknown): TaxCalculationInput 
     }
   }
 
+  const capitalGains = input.capitalGains as Record<string, unknown> | undefined;
+  if (capitalGains !== undefined) {
+    if (typeof capitalGains !== 'object' || capitalGains === null) {
+      throw new ValidationError('capitalGains must be an object');
+    }
+    assertNonNegativeNumber(capitalGains.equitySTCG, 'capitalGains.equitySTCG');
+    assertNonNegativeNumber(capitalGains.equityLTCG, 'capitalGains.equityLTCG');
+    assertNonNegativeNumber(capitalGains.otherSTCG, 'capitalGains.otherSTCG');
+    assertNonNegativeNumber(capitalGains.otherLTCG, 'capitalGains.otherLTCG');
+  }
+
+  assertNonNegativeNumber(input.taxAlreadyPaid, 'taxAlreadyPaid');
+
   return input as unknown as TaxCalculationInput;
 }
 
@@ -135,6 +150,73 @@ export function validateInternationalTaxCalculationInput(
   if (!isNonNegativeNumber(input.annualIncome)) {
     throw new ValidationError('annualIncome must be a non-negative number');
   }
+  if (input.state !== undefined) {
+    const validStates = listUsStates().map((state) => state.code);
+    if (typeof input.state !== 'string' || !validStates.includes(input.state as never)) {
+      throw new ValidationError(`state must be one of: ${validStates.join(', ')}`);
+    }
+    if (input.country !== 'us') {
+      throw new ValidationError('state is only supported when country is "us"');
+    }
+  }
 
   return input as unknown as InternationalTaxCalculationInput;
+}
+
+export interface AdvanceTaxRequestBody {
+  totalTaxLiability: number;
+  taxAlreadyPaid: number;
+  assessmentYear: AssessmentYear;
+}
+
+export function validateAdvanceTaxInput(body: unknown): AdvanceTaxRequestBody {
+  if (typeof body !== 'object' || body === null) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const input = body as Record<string, unknown>;
+
+  const validAssessmentYears = listAssessmentYears();
+  const assessmentYear = input.assessmentYear as AssessmentYear;
+  if (!validAssessmentYears.includes(assessmentYear)) {
+    throw new ValidationError(`assessmentYear must be one of: ${validAssessmentYears.join(', ')}`);
+  }
+  if (!isNonNegativeNumber(input.totalTaxLiability)) {
+    throw new ValidationError('totalTaxLiability must be a non-negative number');
+  }
+  assertNonNegativeNumber(input.taxAlreadyPaid, 'taxAlreadyPaid');
+
+  return {
+    totalTaxLiability: input.totalTaxLiability,
+    taxAlreadyPaid: (input.taxAlreadyPaid as number) ?? 0,
+    assessmentYear,
+  };
+}
+
+const VALID_ITR_BOOLEAN_FIELDS = [
+  'hasSalaryIncome',
+  'hasSingleHouseProperty',
+  'hasMultipleHouseProperties',
+  'hasCapitalGains',
+  'hasBusinessOrProfessionIncome',
+  'isPresumptiveTaxationScheme',
+  'hasForeignAssetsOrIncome',
+  'isCompanyDirector',
+  'hasUnlistedEquityShares',
+  'isResidentIndividual',
+] as const;
+
+export function validateItrRecommenderInput(body: unknown): ItrRecommenderInput {
+  if (typeof body !== 'object' || body === null) {
+    throw new ValidationError('Request body must be an object');
+  }
+  const input = body as Record<string, unknown>;
+
+  for (const field of VALID_ITR_BOOLEAN_FIELDS) {
+    if (input[field] !== undefined && typeof input[field] !== 'boolean') {
+      throw new ValidationError(`${field} must be a boolean`);
+    }
+  }
+  assertNonNegativeNumber(input.totalIncome, 'totalIncome');
+
+  return input as unknown as ItrRecommenderInput;
 }

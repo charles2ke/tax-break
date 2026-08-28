@@ -1,10 +1,12 @@
 import { getConfig } from '../config';
 import {
+  AssessmentYearConfig,
   DeductionsBreakdown,
   Regime,
   TaxBreakdown,
   TaxCalculationInput,
 } from '../types';
+import { calculateCapitalGains } from './capitalGains';
 import { calculateDeductions } from './deductions';
 import { calculateHouseProperty } from './houseProperty';
 import { calculateHraExemption } from './hra';
@@ -12,11 +14,15 @@ import { calculateRebate87A } from './rebate';
 import { calculateSlabTax } from './slabTax';
 import { calculateSurcharge } from './surcharge';
 
+/** Maximum house property loss that can be set off against other heads (Section 71(3A)). */
+const HOUSE_PROPERTY_LOSS_SET_OFF_CAP = 200000;
+
 function calculateGrossIncome(
   input: TaxCalculationInput,
   homeLoanInterestCap: number,
   regime: Regime,
-): { grossTotalIncome: number } {
+  otherSTCG: number,
+): { grossTotalIncome: number; salaryIncome: number } {
   let salaryIncome = 0;
   if (input.salary) {
     const { basic, hraReceived, rentPaid, cityType, lta, specialAllowance, otherTaxableAllowances } =
@@ -42,6 +48,16 @@ function calculateGrossIncome(
     homeLoanInterestCap,
   );
 
+  // A loss from house property can only be set off against other heads of income up to
+  // Rs 2,00,000 a year (Section 71(3A)); the balance is carried forward. Under the New Regime no
+  // such set-off is allowed at all (Section 115BAC).
+  const housePropertyIncome =
+    houseProperty.incomeFromHouseProperty < 0
+      ? regime === 'new'
+        ? 0
+        : Math.max(houseProperty.incomeFromHouseProperty, -HOUSE_PROPERTY_LOSS_SET_OFF_CAP)
+      : houseProperty.incomeFromHouseProperty;
+
   const otherIncome = input.otherIncome;
   const otherIncomeTotal =
     Math.max(0, otherIncome?.savingsInterest ?? 0) +
@@ -49,23 +65,36 @@ function calculateGrossIncome(
     Math.max(0, otherIncome?.dividendIncome ?? 0) +
     Math.max(0, otherIncome?.otherIncome ?? 0);
 
-  const grossTotalIncome = salaryIncome + houseProperty.incomeFromHouseProperty + otherIncomeTotal;
+  const grossTotalIncome = salaryIncome + housePropertyIncome + otherIncomeTotal + otherSTCG;
 
-  return { grossTotalIncome };
+  return { grossTotalIncome, salaryIncome };
 }
 
 /**
- * Computes a full tax breakdown for a single regime.
+ * Computes a full tax breakdown for a single regime. An explicit `configOverride` can be
+ * supplied (e.g. by an admin-configured slab/deduction override) instead of the built-in
+ * versioned config for the assessment year.
  */
-export function calculateTaxForRegime(input: TaxCalculationInput, regime: Regime): TaxBreakdown {
-  const config = getConfig(input.assessmentYear);
+export function calculateTaxForRegime(
+  input: TaxCalculationInput,
+  regime: Regime,
+  configOverride?: AssessmentYearConfig,
+): TaxBreakdown {
+  const config = configOverride ?? getConfig(input.assessmentYear);
   const regimeConfig = config[regime];
 
-  const { grossTotalIncome } = calculateGrossIncome(
+  const capitalGains = calculateCapitalGains(input.capitalGains, config.capitalGains);
+
+  const { grossTotalIncome, salaryIncome } = calculateGrossIncome(
     input,
     config.homeLoanInterestCap.selfOccupied,
     regime,
+    capitalGains.otherSTCGAddedToIncome,
   );
+
+  // The standard deduction under Section 16(ia) is only available against salary income and
+  // cannot exceed it.
+  const standardDeduction = Math.min(regimeConfig.standardDeduction, salaryIncome);
 
   const deductionsBreakdown: DeductionsBreakdown = calculateDeductions(
     regime,
@@ -73,7 +102,7 @@ export function calculateTaxForRegime(input: TaxCalculationInput, regime: Regime
     config,
     input.deductions,
     input.otherIncome,
-    regimeConfig.standardDeduction,
+    standardDeduction,
   );
 
   const taxableIncome = Math.max(0, grossTotalIncome - deductionsBreakdown.total);
@@ -93,7 +122,13 @@ export function calculateTaxForRegime(input: TaxCalculationInput, regime: Regime
 
   const taxPlusSurcharge = taxAfterRebate + surcharge;
   const cess = taxPlusSurcharge * regimeConfig.cessRate;
-  const totalTaxLiability = Math.round(taxPlusSurcharge + cess);
+
+  // Capital gains taxed under Sections 111A/112/112A are taxed at flat/special rates outside
+  // the slab computation above; they are still subject to health & education cess.
+  const capitalGainsCess = capitalGains.totalCapitalGainsTax * regimeConfig.cessRate;
+  const capitalGainsTaxWithCess = capitalGains.totalCapitalGainsTax + capitalGainsCess;
+
+  const totalTaxLiability = Math.round(taxPlusSurcharge + cess + capitalGainsTaxWithCess);
 
   const effectiveTaxRate = grossTotalIncome > 0 ? (totalTaxLiability / grossTotalIncome) * 100 : 0;
 
@@ -109,6 +144,7 @@ export function calculateTaxForRegime(input: TaxCalculationInput, regime: Regime
     surcharge,
     marginalRelief,
     cess,
+    capitalGains,
     totalTaxLiability,
     effectiveTaxRate,
   };
