@@ -50,6 +50,7 @@ jobs:
           GH_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN || github.token }}
           REPO: ${{ github.repository }}
         run: |
+          set -e
           if gh api "repos/$REPO/pages" --silent 2>/dev/null; then
             gh api --method PUT "repos/$REPO/pages" -f build_type=workflow
             echo "Pages source set to GitHub Actions."
