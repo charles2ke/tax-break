@@ -45,21 +45,26 @@ jobs:
       # README.md as the site home page and, because it finishes after this workflow, it
       # overwrites the uploaded client artifact. Switching the source to GitHub Actions
       # (build_type: workflow) stops the Jekyll build and serves the client instead.
+      #
+      # The default GITHUB_TOKEN cannot administer Pages settings (HTTP 403), so this step
+      # is best-effort: it only succeeds when a PAGES_ENABLEMENT_TOKEN secret with Pages
+      # admin permission is available. A failure must not block the deployment below.
       - name: Set Pages source to GitHub Actions
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN || github.token }}
           REPO: ${{ github.repository }}
         run: |
-          set -e
           if gh api "repos/$REPO/pages" --silent 2>/dev/null; then
-            gh api --method PUT "repos/$REPO/pages" -f build_type=workflow
-            echo "Pages source set to GitHub Actions."
+            if gh api --method PUT "repos/$REPO/pages" -f build_type=workflow; then
+              echo "Pages source set to GitHub Actions."
+              exit 0
+            fi
           elif gh api --method POST "repos/$REPO/pages" -f build_type=workflow; then
             echo "Pages enabled with GitHub Actions as the source."
-          else
-            echo "::error::Could not set the Pages source to GitHub Actions. Set it manually in Settings > Pages, or provide a PAGES_ENABLEMENT_TOKEN secret with permission to administer Pages."
-            exit 1
+            exit 0
           fi
+          echo "::warning::Could not set the Pages source to GitHub Actions. Set it manually in Settings > Pages, or provide a PAGES_ENABLEMENT_TOKEN secret with permission to administer Pages."
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
