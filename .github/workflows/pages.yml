@@ -55,7 +55,12 @@ jobs:
           GH_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN || github.token }}
           REPO: ${{ github.repository }}
         run: |
-          if gh api "repos/$REPO/pages" --silent 2>/dev/null; then
+          if current_build_type="$(gh api "repos/$REPO/pages" --jq '.build_type' 2>/dev/null)"; then
+            if [ "$current_build_type" = "workflow" ]; then
+              echo "Pages source is already set to GitHub Actions."
+              exit 0
+            fi
+
             if gh api --method PUT "repos/$REPO/pages" -f build_type=workflow; then
               echo "Pages source set to GitHub Actions."
               exit 0
