@@ -40,31 +40,29 @@ jobs:
           VITE_CALCULATION_MODE: local
         run: npm run build --workspace=client
 
-      - name: Check Pages enablement token
-        id: pages-enable-token
+      # While the Pages source is "Deploy from a branch", GitHub also runs its built-in
+      # Jekyll `pages-build-deployment` workflow on every push to main. That build renders
+      # README.md as the site home page and, because it finishes after this workflow, it
+      # overwrites the uploaded client artifact. Switching the source to GitHub Actions
+      # (build_type: workflow) stops the Jekyll build and serves the client instead.
+      - name: Set Pages source to GitHub Actions
         env:
-          PAGES_ENABLEMENT_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN || github.token }}
+          REPO: ${{ github.repository }}
         run: |
-          if [ -n "$PAGES_ENABLEMENT_TOKEN" ]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
+          set -e
+          if gh api "repos/$REPO/pages" --silent 2>/dev/null; then
+            gh api --method PUT "repos/$REPO/pages" -f build_type=workflow
+            echo "Pages source set to GitHub Actions."
+          elif gh api --method POST "repos/$REPO/pages" -f build_type=workflow; then
+            echo "Pages enabled with GitHub Actions as the source."
           else
-            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Could not set the Pages source to GitHub Actions. Set it manually in Settings > Pages, or provide a PAGES_ENABLEMENT_TOKEN secret with permission to administer Pages."
+            exit 1
           fi
 
-      - name: Setup Pages with enablement token
-        if: ${{ steps.pages-enable-token.outputs.available == 'true' }}
+      - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          # Ensures the Pages site is served from this workflow's artifact instead of a
-          # branch/Jekyll build (which renders README.md as the site's home page).
-          enablement: true
-          token: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
-
-      - name: Setup Pages without enablement token
-        if: ${{ steps.pages-enable-token.outputs.available == 'false' }}
-        uses: actions/configure-pages@v5
-        # Without PAGES_ENABLEMENT_TOKEN, this only configures metadata; the repository
-        # source must already be set to GitHub Actions for the uploaded artifact to serve.
         with:
           token: ${{ github.token }}
 
