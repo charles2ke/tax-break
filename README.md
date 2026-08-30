@@ -201,10 +201,12 @@ The frontend is published from `client/dist` to GitHub Pages by
   - `VITE_BASE_PATH=/tax-break/`
   - `VITE_CALCULATION_MODE=local`
 
-The workflow runs `actions/configure-pages` with `enablement: true`, so the site source is set to
-**GitHub Actions**. If the source is left as *Deploy from a branch*, GitHub serves a Jekyll build of
-the repository root and the site shows `README.md` instead of the app. `client/public/.nojekyll` is
-published with the build so the uploaded artifact is never post-processed by Jekyll.
+When the `PAGES_ENABLEMENT_TOKEN` secret is configured with a PAT or GitHub App token that can
+update Pages settings, the workflow runs `actions/configure-pages` with `enablement: true` so the
+site source is set to **GitHub Actions**. If the source is left as *Deploy from a branch*, GitHub
+serves a Jekyll build of the repository root and the site shows `README.md` instead of the app.
+`client/public/.nojekyll` is published with the build so the uploaded artifact is never
+post-processed by Jekyll.
 
 `VITE_CALCULATION_MODE=local` makes the deployed Pages site run tax calculations directly in the
 browser using `packages/tax-engine`, so it does not depend on a separately hosted backend API.

@@ -40,12 +40,29 @@ jobs:
           VITE_CALCULATION_MODE: local
         run: npm run build --workspace=client
 
-      - name: Setup Pages
+      - name: Check Pages enablement token
+        id: pages-enable-token
+        env:
+          PAGES_ENABLEMENT_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
+        run: |
+          if [ -n "$PAGES_ENABLEMENT_TOKEN" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Pages with enablement token
+        if: ${{ steps.pages-enable-token.outputs.available == 'true' }}
         uses: actions/configure-pages@v5
         with:
           # Ensures the Pages site is served from this workflow's artifact instead of a
           # branch/Jekyll build (which renders README.md as the site's home page).
           enablement: true
+          token: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
+
+      - name: Setup Pages
+        if: ${{ steps.pages-enable-token.outputs.available == 'false' }}
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
