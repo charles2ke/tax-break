@@ -42,6 +42,10 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          # Ensures the Pages site is served from this workflow's artifact instead of a
+          # branch/Jekyll build (which renders README.md as the site's home page).
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
