@@ -16,6 +16,10 @@ concurrency:
 
 jobs:
   deploy:
+    # The github-pages environment only permits deployments from the default branch, so a
+    # run triggered from any other branch (for example a manual `workflow_dispatch` on a
+    # feature branch) is rejected before any step executes. Skip the job instead of failing.
+    if: github.ref_name == github.event.repository.default_branch
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
