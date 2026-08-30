@@ -65,6 +65,8 @@ jobs:
         uses: actions/configure-pages@v5
         # Without PAGES_ENABLEMENT_TOKEN, this only configures metadata; the repository
         # source must already be set to GitHub Actions for the uploaded artifact to serve.
+        with:
+          token: ${{ github.token }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
