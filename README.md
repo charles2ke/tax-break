@@ -12,6 +12,37 @@ estimates for Ireland, the Netherlands, the UK, the US, and Singapore.
 > Department e-filing portal. Always verify your tax computation with a qualified professional or
 > the official e-filing utility before filing your return.
 
+## Screenshots
+
+The screenshots below were captured from a local run of the client against the API server, using
+sample figures for FY 2025-26. The advance tax, ITR recommendation, save/export and e-filing
+features need the backend API, so they are not available on the GitHub Pages demo, which runs the
+tax engine directly in the browser.
+
+### Home page
+
+![Tax Break home page with a summary of the supported features and a "Calculate My Tax" button](docs/screenshots/landing.png)
+
+### Income and deduction form
+
+![Income & Deduction Details form showing the tax residence selector, assessment year and age category, and the salary fields with HRA and rent inputs](docs/screenshots/tax-form.png)
+
+### Old vs New regime comparison
+
+![Results page recommending the New Regime, with the total tax and effective rate for each regime and a bar chart comparing them](docs/screenshots/regime-comparison.png)
+
+### Detailed breakdown, ITR form and advance tax
+
+![Detailed breakdown table comparing both regimes line by line, next to the recommended ITR form and the quarterly advance tax schedule](docs/screenshots/detailed-breakdown.png)
+
+### Saved returns, export and simulated e-filing
+
+![My Saved Returns page listing a saved calculation with PDF, Excel, e-File and Delete actions, and the acknowledgement returned by the simulated e-filing provider](docs/screenshots/saved-returns.png)
+
+### International estimate
+
+![Ireland income tax estimate showing gross income, taxable income, tax before credits, tax credits, total tax and effective rate in euros](docs/screenshots/international-estimate.png)
+
 ## Features
 
 - Assessment Year selection covering the current and previous four financial years (FY 2021-22 to
