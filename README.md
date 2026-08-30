@@ -201,10 +201,12 @@ The frontend is published from `client/dist` to GitHub Pages by
   - `VITE_BASE_PATH=/tax-break/`
   - `VITE_CALCULATION_MODE=local`
 
-When the `PAGES_ENABLEMENT_TOKEN` secret is configured with a PAT or GitHub App token that can
-update Pages settings, the workflow runs `actions/configure-pages` with `enablement: true` so the
-site source is set to **GitHub Actions**. If the source is left as *Deploy from a branch*, GitHub
-serves a Jekyll build of the repository root and the site shows `README.md` instead of the app.
+Before uploading the build, the workflow sets the repository's Pages source to **GitHub Actions**
+(`build_type: workflow`) via the Pages API, using the workflow's `GITHUB_TOKEN` (or
+`PAGES_ENABLEMENT_TOKEN` if that secret is configured). This is required: while the source is
+*Deploy from a branch*, GitHub also runs its built-in Jekyll `pages-build-deployment` workflow on
+every push to `main`, which publishes a Jekyll build of the repository root — so the site shows
+`README.md` instead of the app, overwriting the uploaded client artifact.
 `client/public/.nojekyll` is published with the build so the uploaded artifact is never
 post-processed by Jekyll.
 
