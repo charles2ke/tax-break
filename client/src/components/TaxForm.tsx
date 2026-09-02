@@ -14,6 +14,12 @@ import { HousePropertySection } from './HousePropertySection';
 import { OtherIncomeSection } from './OtherIncomeSection';
 import { DeductionsSection } from './DeductionsSection';
 import { CapitalGainsSection } from './CapitalGainsSection';
+import {
+  IrelandSection,
+  initialIrelandFormState,
+  toIrelandTaxCalculationInput,
+} from './IrelandSection';
+import type { IrelandFormState } from './IrelandSection';
 import { NumberField } from './NumberField';
 
 const US_STATES = listUsStates();
@@ -48,6 +54,7 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
   const [country, setCountry] = useState<TaxCountry>('india');
   const [annualIncome, setAnnualIncome] = useState(0);
   const [usState, setUsState] = useState<UsState>('CA');
+  const [irelandForm, setIrelandForm] = useState<IrelandFormState>(initialIrelandFormState);
 
   const handleChange = (updater: (f: FormState) => FormState) => setForm(updater);
 
@@ -58,6 +65,8 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
         e.preventDefault();
         if (country === 'india') {
           onSubmit(toTaxCalculationInput(form));
+        } else if (country === 'ireland') {
+          onSubmit(toIrelandTaxCalculationInput(irelandForm));
         } else if (country === 'us') {
           onSubmit({ country, annualIncome, state: usState });
         } else {
@@ -81,9 +90,10 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
           <option value="singapore">Singapore</option>
         </select>
         <span className="mt-1 block text-xs text-slate-500">
-          Choose India for the detailed Old vs New Regime comparison. The US estimate includes
-          federal tax and state tax for the selected state; other countries give a simplified
-          resident individual estimate in their local currency.
+          Choose India for the detailed Old vs New Regime comparison, or Ireland for a detailed PAYE
+          estimate covering bonus, share awards, pension relief, USC, PRSI and capital gains. The US
+          estimate includes federal tax and state tax for the selected state; other countries give a
+          simplified resident individual estimate in their local currency.
         </span>
       </label>
 
@@ -96,6 +106,8 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
           <DeductionsSection form={form} onChange={handleChange} />
           <CapitalGainsSection form={form} onChange={handleChange} />
         </>
+      ) : country === 'ireland' ? (
+        <IrelandSection form={irelandForm} onChange={setIrelandForm} />
       ) : (
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-900">Annual Income</h2>

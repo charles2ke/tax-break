@@ -1,5 +1,6 @@
 import { calculateSlabTax } from './slabTax';
 import { calculateUsStateTax } from './usState';
+import { calculateIrelandTax } from './ireland';
 import { InternationalTaxCalculationInput, InternationalTaxResult, SlabBracket } from '../types';
 
 interface CountryTaxConfig {
@@ -39,18 +40,10 @@ function dutchLabourTaxCredit(income: number): number {
 
 // 2025 resident individual income-tax rates. Unless noted per country, this estimator excludes
 // payroll/social-security contributions, local taxes, and other country-specific reliefs.
-const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], CountryTaxConfig> = {
-  ireland: {
-    currency: 'EUR',
-    standardDeduction: 0,
-    // Single PAYE employee: personal tax credit (EUR 2,000) + employee tax credit (EUR 2,000).
-    taxCredits: 4000,
-    slabs: [
-      // Standard rate cut-off point for a single individual in 2025.
-      { from: 0, to: 44000, rate: 0.2 },
-      { from: 44000, to: null, rate: 0.4 },
-    ],
-  },
+const COUNTRY_CONFIGS: Record<
+  Exclude<InternationalTaxCalculationInput['country'], 'ireland'>,
+  CountryTaxConfig
+> = {
   // The Netherlands levies income tax only at national level: there is no provincial or municipal
   // income tax, so no regional add-on applies. Box 1 (work and home) rates below are for taxpayers
   // under the AOW age and already include national social-security contributions in the first two
@@ -115,6 +108,11 @@ const COUNTRY_CONFIGS: Record<InternationalTaxCalculationInput['country'], Count
 export function calculateInternationalTax(
   input: InternationalTaxCalculationInput,
 ): InternationalTaxResult {
+  // Ireland has a dedicated calculator covering bonus, share income, pension relief, USC and PRSI.
+  if (input.country === 'ireland') {
+    return calculateIrelandTax(input);
+  }
+
   const config = COUNTRY_CONFIGS[input.country];
   const grossIncome = Math.max(0, input.annualIncome);
   const standardDeduction = Math.min(grossIncome, config.standardDeduction);

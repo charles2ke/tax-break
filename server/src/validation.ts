@@ -12,6 +12,20 @@ const VALID_AGE_CATEGORIES: AgeCategory[] = ['below60', '60to80', 'above80'];
 const VALID_CITY_TYPES = ['metro', 'non-metro'];
 const VALID_HOUSE_PROPERTY_TYPES = ['self-occupied', 'let-out'];
 const VALID_INTERNATIONAL_COUNTRIES = ['ireland', 'netherlands', 'uk', 'us', 'singapore'];
+const VALID_IRELAND_FILING_STATUSES = [
+  'single',
+  'singleParent',
+  'marriedOneIncome',
+  'marriedTwoIncomes',
+];
+const VALID_IRELAND_PENSION_AGE_BANDS = [
+  'under30',
+  '30to39',
+  '40to49',
+  '50to54',
+  '55to59',
+  '60plus',
+];
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -160,7 +174,49 @@ export function validateInternationalTaxCalculationInput(
     }
   }
 
+  if (input.country === 'ireland') {
+    validateIrelandFields(input);
+  }
+
   return input as unknown as InternationalTaxCalculationInput;
+}
+
+function validateIrelandFields(input: Record<string, unknown>): void {
+  assertNonNegativeNumber(input.bonus, 'bonus');
+  assertNonNegativeNumber(input.taxableBenefits, 'taxableBenefits');
+  assertNonNegativeNumber(input.otherIncome, 'otherIncome');
+  assertNonNegativeNumber(input.pensionContributions, 'pensionContributions');
+  assertNonNegativeNumber(input.spouseIncome, 'spouseIncome');
+  assertNonNegativeNumber(input.medicalExpenses, 'medicalExpenses');
+  assertNonNegativeNumber(input.rentPaid, 'rentPaid');
+
+  if (
+    input.filingStatus !== undefined &&
+    !VALID_IRELAND_FILING_STATUSES.includes(input.filingStatus as string)
+  ) {
+    throw new ValidationError(
+      `filingStatus must be one of: ${VALID_IRELAND_FILING_STATUSES.join(', ')}`,
+    );
+  }
+  if (
+    input.pensionAgeBand !== undefined &&
+    !VALID_IRELAND_PENSION_AGE_BANDS.includes(input.pensionAgeBand as string)
+  ) {
+    throw new ValidationError(
+      `pensionAgeBand must be one of: ${VALID_IRELAND_PENSION_AGE_BANDS.join(', ')}`,
+    );
+  }
+
+  const shares = input.shares as Record<string, unknown> | undefined;
+  if (shares !== undefined) {
+    if (typeof shares !== 'object' || shares === null || Array.isArray(shares)) {
+      throw new ValidationError('shares must be an object');
+    }
+    assertNonNegativeNumber(shares.rsuVestedValue, 'shares.rsuVestedValue');
+    assertNonNegativeNumber(shares.shareSaleProceeds, 'shares.shareSaleProceeds');
+    assertNonNegativeNumber(shares.shareSaleCost, 'shares.shareSaleCost');
+    assertNonNegativeNumber(shares.capitalLossesForward, 'shares.capitalLossesForward');
+  }
 }
 
 export interface AdvanceTaxRequestBody {
