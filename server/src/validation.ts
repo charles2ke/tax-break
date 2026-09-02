@@ -209,7 +209,7 @@ function validateIrelandFields(input: Record<string, unknown>): void {
 
   const shares = input.shares as Record<string, unknown> | undefined;
   if (shares !== undefined) {
-    if (typeof shares !== 'object' || shares === null) {
+    if (typeof shares !== 'object' || shares === null || Array.isArray(shares)) {
       throw new ValidationError('shares must be an object');
     }
     assertNonNegativeNumber(shares.rsuVestedValue, 'shares.rsuVestedValue');
