@@ -152,7 +152,7 @@ export type IrelandTaxCalculationInput = InternationalTaxCalculationBase & {
   pensionAgeBand?: IrelandPensionAgeBand;
   /** Personal circumstances. Defaults to `single`. */
   filingStatus?: IrelandFilingStatus;
-  /** Spouse/civil partner income, used to extend the jointly assessed cut-off point. */
+  /** Lower earner income (you or spouse/civil partner), used to extend the jointly assessed cut-off point. */
   spouseIncome?: number;
   shares?: IrelandShareInput;
   /** Qualifying non-routine medical expenses, relieved at 20%. */

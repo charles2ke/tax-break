@@ -75,8 +75,8 @@ tax engine directly in the browser.
   Netherlands levies no provincial or municipal income tax.
 - US estimates use the 2025 single-filer federal brackets and standard deduction, and add state
   income tax for the selected state of residence (all 50 states plus DC). Local/city/county income
-  taxes, tax credits (other than Ireland's and the Netherlands', noted above), and payroll taxes are
-  excluded outside Ireland.
+  taxes, tax credits (other than Ireland's and the Netherlands', noted above), and additional
+  payroll taxes are excluded unless already included in country rates.
 - Capital gains tax (equity/other STCG and LTCG, Sections 111A/112/112A) at the rates applicable to
   the selected year, factored into the regime comparison.
 - Advance tax installment schedule (15%/45%/75%/100% due-date breakdown) with an estimate of

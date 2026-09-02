@@ -113,10 +113,10 @@ export function IrelandSection({ form, onChange }: Props) {
         </label>
         {form.filingStatus === 'marriedTwoIncomes' && (
           <NumberField
-            label="Spouse / civil partner annual income (€)"
+            label="Lower earner annual income (€)"
             value={form.spouseIncome}
             onChange={(v) => update({ spouseIncome: v })}
-            helpText="Extends your standard rate cut-off point by up to €35,000 and adds a second employee tax credit."
+            helpText="Enter the lower earner's income (you or your spouse/civil partner). This extends your standard rate cut-off point by up to €35,000 and adds a second employee tax credit."
           />
         )}
       </section>

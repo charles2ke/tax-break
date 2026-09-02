@@ -103,7 +103,7 @@ describe('calculateIrelandTax', () => {
     expect(result.totalTaxLiability).toBeCloseTo(15006 + 3210.9, 2);
   });
 
-  it('does not create a negative gain from a loss-making disposal', () => {
+  it('floors taxable gain and CGT at zero for a loss-making disposal', () => {
     const result = calculateIrelandTax({
       country: 'ireland',
       annualIncome: 40000,

@@ -326,9 +326,9 @@ function InternationalResultsView({
         <InternationalRow label="Effective tax rate" value={result.effectiveTaxRate} suffix="%" />
       </dl>
       <p className="mt-8 text-xs text-slate-400">
-        This resident-individual estimate excludes payroll/social-security contributions, local
-        taxes, and other country-specific reliefs, except where they are shown above. It only
-        applies tax credits where they are shown above.
+        This resident-individual estimate excludes most additional payroll/social-security
+        contributions, local taxes, and other country-specific reliefs. It only applies tax credits
+        where they are shown above.
         {result.country === 'ireland' &&
           ' Irish figures use the 2025 bands, credits, USC rates and the 4.1% Class A employee' +
             ' PRSI rate, and assume you are under 70 with no medical card. The PRSI tapered' +
