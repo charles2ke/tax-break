@@ -39,9 +39,13 @@ tax engine directly in the browser.
 
 ![My Saved Returns page listing a saved calculation with PDF, Excel, e-File and Delete actions, and the acknowledgement returned by the simulated e-filing provider](docs/screenshots/saved-returns.png)
 
+### Ireland form
+
+![Ireland tax form showing personal circumstances, employment income with bonus and benefits in kind, share awards and disposals, and pension and reliefs fields](docs/screenshots/ireland-form.png)
+
 ### International estimate
 
-![Ireland income tax estimate showing gross income, taxable income, tax before credits, tax credits, total tax and effective rate in euros](docs/screenshots/international-estimate.png)
+![Ireland income tax estimate showing employment income, share vesting, pension relief, taxable income, tax credits, USC, PRSI, capital gains tax, total tax, net income and effective rate in euros](docs/screenshots/international-estimate.png)
 
 ## Features
 
