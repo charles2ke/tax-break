@@ -96,8 +96,70 @@ export type UsState =
   | 'SC' | 'SD' | 'TN' | 'TX' | 'UT' | 'VT' | 'VA' | 'WA' | 'WV' | 'WI' | 'WY';
 
 type InternationalTaxCalculationBase = {
-  /** Annual gross income in the country's local currency. */
+  /**
+   * Annual gross income in the country's local currency. For Ireland this is the basic salary
+   * only; bonus, benefits in kind, share income and other income are supplied separately.
+   */
   annualIncome: number;
+};
+
+/** Personal circumstances that set the Irish standard rate cut-off point and personal tax credit. */
+export type IrelandFilingStatus =
+  | 'single'
+  | 'singleParent'
+  | 'marriedOneIncome'
+  | 'marriedTwoIncomes';
+
+/** Age band that caps the age-related percentage limit on Irish pension contribution relief. */
+export type IrelandPensionAgeBand =
+  | 'under30'
+  | '30to39'
+  | '40to49'
+  | '50to54'
+  | '55to59'
+  | '60plus';
+
+/** Share awards vested and shares disposed of during the year. */
+export interface IrelandShareInput {
+  /**
+   * Market value on vesting of share awards (RSUs). Taxed as employment income through payroll
+   * (income tax, USC and PRSI).
+   */
+  rsuVestedValue?: number;
+  /** Gross proceeds from shares sold during the year. */
+  shareSaleProceeds?: number;
+  /**
+   * Base cost of the shares sold plus incidental costs of acquisition/disposal. For RSUs this is
+   * normally the market value already taxed on vesting.
+   */
+  shareSaleCost?: number;
+  /** Allowable capital losses carried forward from earlier years. */
+  capitalLossesForward?: number;
+}
+
+/** Detailed Irish PAYE inputs. Every field other than `annualIncome` is optional. */
+export type IrelandTaxCalculationInput = InternationalTaxCalculationBase & {
+  country: 'ireland';
+  /** Annual performance/commission bonus paid during the year. */
+  bonus?: number;
+  /** Notional pay from taxable benefits in kind (company car, health insurance paid by employer). */
+  taxableBenefits?: number;
+  /** Non-PAYE income such as rental profit, dividends or freelance income. */
+  otherIncome?: number;
+  /** Employee pension/PRSA/AVC contributions eligible for income tax relief. */
+  pensionContributions?: number;
+  /** Age band on 31 December, used for the age-related pension relief limit. */
+  pensionAgeBand?: IrelandPensionAgeBand;
+  /** Personal circumstances. Defaults to `single`. */
+  filingStatus?: IrelandFilingStatus;
+  /** Spouse/civil partner income, used to extend the jointly assessed cut-off point. */
+  spouseIncome?: number;
+  shares?: IrelandShareInput;
+  /** Qualifying non-routine medical expenses, relieved at 20%. */
+  medicalExpenses?: number;
+  /** Rent paid on a principal private residence, relieved at 20% up to the rent tax credit cap. */
+  rentPaid?: number;
+  state?: never;
 };
 
 export type InternationalTaxCalculationInput =
@@ -109,8 +171,9 @@ export type InternationalTaxCalculationInput =
        */
       state?: UsState;
     })
+  | IrelandTaxCalculationInput
   | (InternationalTaxCalculationBase & {
-      country: Exclude<TaxCountry, 'india' | 'us'>;
+      country: Exclude<TaxCountry, 'india' | 'us' | 'ireland'>;
       state?: never;
     });
 
@@ -127,7 +190,40 @@ interface InternationalTaxResultBase {
   effectiveTaxRate: number;
 }
 
+/** Irish-specific components of the estimate, in euros. */
+export interface IrelandTaxBreakdown {
+  /** Salary + bonus + benefits in kind + share award vesting value. */
+  employmentIncome: number;
+  /** Market value of share awards that vested and were taxed as employment income. */
+  shareVestingIncome: number;
+  /** Non-PAYE income included in the assessment. */
+  otherIncome: number;
+  /** Pension contributions actually relieved after the age-related and earnings caps. */
+  pensionRelief: number;
+  /** Income taxed at the 20% standard rate; the balance is taxed at 40%. */
+  standardRateCutOff: number;
+  /** Universal Social Charge on gross income (no pension relief applies). */
+  universalSocialCharge: number;
+  /** Class A employee PRSI. */
+  prsi: number;
+  /** Chargeable gain on shares sold, after allowable costs and losses forward. */
+  capitalGain: number;
+  /** Chargeable gain after the annual personal CGT exemption. */
+  taxableCapitalGain: number;
+  /** Capital gains tax at 33% on the taxable gain. */
+  capitalGainsTax: number;
+  /** Total income and gains less all taxes above. */
+  netIncome: number;
+}
+
 export type InternationalTaxResult =
+  | (InternationalTaxResultBase & {
+      country: 'ireland';
+      state?: never;
+      stateTax?: never;
+      stateTaxableIncome?: never;
+      ireland: IrelandTaxBreakdown;
+    })
   | (InternationalTaxResultBase & {
       country: 'us';
       /** The state of residence the state tax was estimated for. */
@@ -136,12 +232,14 @@ export type InternationalTaxResult =
       stateTax?: number;
       /** Income subject to state income tax after the state deduction/exemption. */
       stateTaxableIncome?: number;
+      ireland?: never;
     })
   | (InternationalTaxResultBase & {
-      country: Exclude<TaxCountry, 'india' | 'us'>;
+      country: Exclude<TaxCountry, 'india' | 'us' | 'ireland'>;
       state?: never;
       stateTax?: never;
       stateTaxableIncome?: never;
+      ireland?: never;
     });
 
 export interface SlabBracket {

@@ -9,6 +9,7 @@ export { calculateSurcharge } from './calculators/surcharge';
 export { calculateTaxForRegime } from './calculators/regime';
 export { compareRegimes } from './calculators/compare';
 export { calculateInternationalTax } from './calculators/international';
+export { calculateIrelandTax } from './calculators/ireland';
 export {
   calculateUsStateTax,
   listUsStates,

@@ -57,14 +57,22 @@ tax engine directly in the browser.
 - Section 87A rebate (including marginal relief above the New Regime rebate limit from
   FY 2023-24), surcharge with marginal relief, and 4% health & education cess.
 - Side-by-side Old vs New regime comparison with a recommendation and savings amount.
-- 2025 resident individual income-tax slab estimates for Ireland, the Netherlands, the UK, the US,
-  and Singapore in their local currency, including Ireland's personal and employee (PAYE) tax
-  credits. The Dutch estimate uses Box 1 rates for taxpayers below the AOW age and applies the
+- A detailed 2025 Ireland PAYE estimate covering basic salary, bonus, benefits in kind, other
+  (non-PAYE) income, share awards (RSUs) vesting, shares sold, pension/PRSA/AVC contributions with
+  the age-related and EUR 115,000 earnings caps, personal circumstances (single, single person
+  child carer, jointly assessed one or two incomes) with the matching standard rate cut-off point
+  and personal/employee tax credits, medical expenses relief, the rent tax credit, Universal Social
+  Charge, Class A employee PRSI, and capital gains tax at 33% after the EUR 1,270 annual exemption
+  and losses forward. The PRSI tapered credit for low weekly earnings and reduced USC rates for
+  medical card holders are not applied.
+- 2025 resident individual income-tax slab estimates for the Netherlands, the UK, the US,
+  and Singapore in their local currency. The Dutch estimate uses Box 1 rates for taxpayers below the AOW age and applies the
   general tax credit (algemene heffingskorting) and labour tax credit (arbeidskorting); the
   Netherlands levies no provincial or municipal income tax.
 - US estimates use the 2025 single-filer federal brackets and standard deduction, and add state
   income tax for the selected state of residence (all 50 states plus DC). Local/city/county income
-  taxes, tax credits (other than Ireland's, noted above), and payroll taxes are excluded.
+  taxes, tax credits (other than Ireland's and the Netherlands', noted above), and payroll taxes are
+  excluded outside Ireland.
 - Capital gains tax (equity/other STCG and LTCG, Sections 111A/112/112A) at the rates applicable to
   the selected year, factored into the regime comparison.
 - Advance tax installment schedule (15%/45%/75%/100% due-date breakdown) with an estimate of

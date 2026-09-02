@@ -198,16 +198,52 @@ function InternationalResultsView({
           value={result.grossIncome}
           currency={result.currency}
         />
-        <InternationalRow
-          label="Standard deduction"
-          value={result.standardDeduction}
-          currency={result.currency}
-        />
+        {result.country === 'ireland' ? (
+          <>
+            <InternationalRow
+              label="Employment income (salary, bonus, benefits, shares vested)"
+              value={result.ireland.employmentIncome}
+              currency={result.currency}
+            />
+            {result.ireland.shareVestingIncome > 0 && (
+              <InternationalRow
+                label="of which share awards vested"
+                value={result.ireland.shareVestingIncome}
+                currency={result.currency}
+              />
+            )}
+            {result.ireland.otherIncome > 0 && (
+              <InternationalRow
+                label="Other (non-PAYE) income"
+                value={result.ireland.otherIncome}
+                currency={result.currency}
+              />
+            )}
+            <InternationalRow
+              label="Pension contributions relieved"
+              value={result.ireland.pensionRelief}
+              currency={result.currency}
+            />
+          </>
+        ) : (
+          <InternationalRow
+            label="Standard deduction"
+            value={result.standardDeduction}
+            currency={result.currency}
+          />
+        )}
         <InternationalRow
           label="Taxable income"
           value={result.taxableIncome}
           currency={result.currency}
         />
+        {result.country === 'ireland' && (
+          <InternationalRow
+            label="Standard rate cut-off point (taxed at 20%)"
+            value={result.ireland.standardRateCutOff}
+            currency={result.currency}
+          />
+        )}
         {result.country === 'us' ? (
           <>
             <InternationalRow
@@ -237,18 +273,67 @@ function InternationalResultsView({
             />
           </>
         ) : null}
+        {result.country === 'ireland' && (
+          <>
+            <InternationalRow
+              label="Universal Social Charge (USC)"
+              value={result.ireland.universalSocialCharge}
+              currency={result.currency}
+            />
+            <InternationalRow
+              label="Employee PRSI"
+              value={result.ireland.prsi}
+              currency={result.currency}
+            />
+            {(result.ireland.capitalGain !== 0 || result.ireland.capitalGainsTax > 0) && (
+              <>
+                <InternationalRow
+                  label="Chargeable gain on shares sold"
+                  value={result.ireland.capitalGain}
+                  currency={result.currency}
+                />
+                <InternationalRow
+                  label="Gain after the €1,270 annual exemption"
+                  value={result.ireland.taxableCapitalGain}
+                  currency={result.currency}
+                />
+                <InternationalRow
+                  label="Capital gains tax (33%)"
+                  value={result.ireland.capitalGainsTax}
+                  currency={result.currency}
+                />
+              </>
+            )}
+          </>
+        )}
         <InternationalRow
-          label={result.country === 'us' ? 'Total estimated tax' : 'Estimated income tax'}
+          label={
+            result.country === 'us' || result.country === 'ireland'
+              ? 'Total estimated tax'
+              : 'Estimated income tax'
+          }
           value={result.totalTaxLiability}
           currency={result.currency}
           strong
         />
+        {result.country === 'ireland' && (
+          <InternationalRow
+            label="Net income after tax"
+            value={result.ireland.netIncome}
+            currency={result.currency}
+          />
+        )}
         <InternationalRow label="Effective tax rate" value={result.effectiveTaxRate} suffix="%" />
       </dl>
       <p className="mt-8 text-xs text-slate-400">
-        This resident-individual estimate excludes payroll/social-security contributions (such as
-        Irish USC and PRSI), local taxes, and other country-specific reliefs. It only applies tax
-        credits where they are shown above.
+        This resident-individual estimate excludes payroll/social-security contributions, local
+        taxes, and other country-specific reliefs, except where they are shown above. It only
+        applies tax credits where they are shown above.
+        {result.country === 'ireland' &&
+          ' Irish figures use the 2025 bands, credits, USC rates and the 4.1% Class A employee' +
+            ' PRSI rate, and assume you are under 70 with no medical card. The PRSI tapered' +
+            ' credit for low weekly earnings and the reduced USC rates for medical card holders' +
+            ' are not applied.'}
         {result.country === 'us' &&
           ' US figures assume a single filer; city and county income taxes are not included.'}
         {result.country === 'netherlands' &&
