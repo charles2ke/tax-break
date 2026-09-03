@@ -75,6 +75,13 @@ describe('parseForm26AS', () => {
     expect(summary.totalTaxPaid).toBe(240000);
   });
 
+  it('excludes every 206C variant from income but keeps its TCS', () => {
+    const summary = parseForm26AS('1^206CZ^12-Feb-2025^F^15-Mar-2025^120000.00^1200.00^1200.00');
+
+    expect(summary.otherIncome).toBe(0);
+    expect(summary.totalTaxPaid).toBe(1200);
+  });
+
   it('returns zeroes for content with no recognisable rows', () => {
     const summary = parseForm26AS('This file contains no tax data at all.');
 

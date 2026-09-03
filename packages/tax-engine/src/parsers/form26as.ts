@@ -157,7 +157,7 @@ export function parseForm26AS(contents: string): Form26ASSummary {
       summary.interestIncome += entry.amountPaid;
     } else if (DIVIDEND_SECTIONS.has(entry.section)) {
       summary.dividendIncome += entry.amountPaid;
-    } else if (!NON_INCOME_SECTIONS.has(entry.section)) {
+    } else if (!NON_INCOME_SECTIONS.has(entry.section) && !entry.section.startsWith('206C')) {
       summary.otherIncome += entry.amountPaid;
     }
   }
