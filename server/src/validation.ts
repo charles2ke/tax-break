@@ -177,6 +177,9 @@ export function validateInternationalTaxCalculationInput(
   if (input.country === 'ireland') {
     validateIrelandFields(input);
   }
+  if (input.country === 'netherlands') {
+    validateNetherlandsFields(input);
+  }
 
   return input as unknown as InternationalTaxCalculationInput;
 }
@@ -216,6 +219,46 @@ function validateIrelandFields(input: Record<string, unknown>): void {
     assertNonNegativeNumber(shares.shareSaleProceeds, 'shares.shareSaleProceeds');
     assertNonNegativeNumber(shares.shareSaleCost, 'shares.shareSaleCost');
     assertNonNegativeNumber(shares.capitalLossesForward, 'shares.capitalLossesForward');
+  }
+}
+
+function assertBoolean(value: unknown, field: string): void {
+  if (value === undefined) return;
+  if (typeof value !== 'boolean') {
+    throw new ValidationError(`${field} must be a boolean`);
+  }
+}
+
+function assertObject(value: unknown, field: string): Record<string, unknown> | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new ValidationError(`${field} must be an object`);
+  }
+  return value as Record<string, unknown>;
+}
+
+function validateNetherlandsFields(input: Record<string, unknown>): void {
+  assertNonNegativeNumber(input.holidayAllowance, 'holidayAllowance');
+  assertNonNegativeNumber(input.bonus, 'bonus');
+  assertNonNegativeNumber(input.taxableBenefits, 'taxableBenefits');
+  assertNonNegativeNumber(input.otherIncome, 'otherIncome');
+  assertNonNegativeNumber(input.pensionContributions, 'pensionContributions');
+  assertNonNegativeNumber(input.box2Income, 'box2Income');
+  assertNonNegativeNumber(input.otherDeductions, 'otherDeductions');
+  assertBoolean(input.thirtyPercentRuling, 'thirtyPercentRuling');
+  assertBoolean(input.fiscalPartner, 'fiscalPartner');
+
+  const home = assertObject(input.home, 'home');
+  if (home !== undefined) {
+    assertNonNegativeNumber(home.wozValue, 'home.wozValue');
+    assertNonNegativeNumber(home.mortgageInterest, 'home.mortgageInterest');
+  }
+
+  const box3 = assertObject(input.box3, 'box3');
+  if (box3 !== undefined) {
+    assertNonNegativeNumber(box3.savings, 'box3.savings');
+    assertNonNegativeNumber(box3.investments, 'box3.investments');
+    assertNonNegativeNumber(box3.debts, 'box3.debts');
   }
 }
 
