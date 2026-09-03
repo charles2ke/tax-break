@@ -65,6 +65,16 @@ describe('parseForm26AS', () => {
     expect(summary.totalTaxPaid).toBe(50000);
   });
 
+  it('excludes cash withdrawals under 194N from income but keeps their TDS', () => {
+    const summary = parseForm26AS(
+      '1^194N^12-Feb-2025^F^15-Mar-2025^12000000.00^240000.00^240000.00',
+    );
+
+    expect(summary.interestIncome).toBe(0);
+    expect(summary.otherIncome).toBe(0);
+    expect(summary.totalTaxPaid).toBe(240000);
+  });
+
   it('returns zeroes for content with no recognisable rows', () => {
     const summary = parseForm26AS('This file contains no tax data at all.');
 

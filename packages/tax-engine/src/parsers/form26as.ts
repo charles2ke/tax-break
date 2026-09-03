@@ -23,7 +23,7 @@ export interface Form26ASSectionTotal {
 export interface Form26ASSummary {
   /** Salary credited by employers (section 192). */
   salaryIncome: number;
-  /** Interest income (sections 193, 194A, 194N). */
+  /** Interest income (sections 193, 194A). */
   interestIncome: number;
   /** Dividend income (sections 194, 194K). */
   dividendIncome: number;
@@ -38,10 +38,14 @@ export interface Form26ASSummary {
 }
 
 const SALARY_SECTIONS = new Set(['192', '192A']);
-const INTEREST_SECTIONS = new Set(['193', '194A', '194N']);
+const INTEREST_SECTIONS = new Set(['193', '194A']);
 const DIVIDEND_SECTIONS = new Set(['194', '194K']);
-/** Sections whose "amount paid" is not income of the taxpayer (e.g. a property sale price). */
-const NON_INCOME_SECTIONS = new Set(['194IA', '194IB', '206C', '206CB', '206CQ', '206CR']);
+/**
+ * Sections whose "amount paid" is not income of the taxpayer, such as a property
+ * sale price (194IA), rent paid by the taxpayer (194IB) or a cash withdrawal
+ * (194N). Their TDS still counts towards the tax already paid.
+ */
+const NON_INCOME_SECTIONS = new Set(['194IA', '194IB', '194N', '206C', '206CB', '206CQ', '206CR']);
 
 const SECTION_CODE = /^19[0-9]-?[A-Z]{0,2}$|^206C[A-Z]?$/;
 const AMOUNT = /^-?\d{1,3}(?:,\d{2,3})*(?:\.\d+)?$|^-?\d+(?:\.\d+)?$/;
