@@ -37,18 +37,21 @@ export function SalarySection({ form, onChange }: Props) {
       <div className="grid gap-4 sm:grid-cols-2">
         <NumberField
           label="Basic Salary (annual)"
+          example="₹9,60,000"
           value={salary.basic}
           onChange={(v) => update({ basic: v })}
           helpText="Annual basic pay (including dearness allowance, if any). Used as the base for the HRA exemption."
         />
         <NumberField
           label="HRA Received (annual)"
+          example="₹4,80,000"
           value={salary.hraReceived}
           onChange={(v) => update({ hraReceived: v })}
           helpText="House rent allowance actually received during the year. Fully taxable under the New Regime."
         />
         <NumberField
           label="Rent Paid (annual)"
+          example="₹3,60,000"
           value={salary.rentPaid}
           onChange={(v) => update({ rentPaid: v })}
           helpText="Total rent you paid for the year. Exemption is only available under the Old Regime, per Section 10(13A)."
@@ -69,12 +72,14 @@ export function SalarySection({ form, onChange }: Props) {
         </label>
         <NumberField
           label="LTA (annual)"
+          example="₹60,000"
           value={salary.lta}
           onChange={(v) => update({ lta: v })}
           helpText="Leave travel allowance received. Enter the taxable portion, i.e. after any exempt travel claim."
         />
         <NumberField
           label="Special Allowance (annual)"
+          example="₹3,00,000"
           value={salary.specialAllowance}
           onChange={(v) => update({ specialAllowance: v })}
           helpText="All other taxable salary components: special allowance, bonus, perquisites, etc."
