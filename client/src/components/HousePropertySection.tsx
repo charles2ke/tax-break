@@ -37,6 +37,7 @@ export function HousePropertySection({ form, onChange }: Props) {
         </label>
         <NumberField
           label="Home Loan Interest Paid (annual)"
+          example="₹2,10,000"
           value={houseProperty.homeLoanInterest}
           onChange={(v) => update({ homeLoanInterest: v })}
           helpText={
@@ -49,12 +50,14 @@ export function HousePropertySection({ form, onChange }: Props) {
           <>
             <NumberField
               label="Annual Rent Received"
+              example="₹2,40,000"
               value={houseProperty.annualRentReceived}
               onChange={(v) => update({ annualRentReceived: v })}
               helpText="Total rent receivable for the year. A 30% standard deduction on the net annual value is applied automatically."
             />
             <NumberField
               label="Municipal Taxes Paid"
+              example="₹12,000"
               value={houseProperty.municipalTaxesPaid}
               onChange={(v) => update({ municipalTaxesPaid: v })}
               helpText="Property tax actually paid to the local authority during the year; deducted from the rent received."

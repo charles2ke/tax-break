@@ -21,11 +21,15 @@ tax engine directly in the browser.
 
 ### Home page
 
-![Tax Break home page with a summary of the supported features and a "Calculate My Tax" button](docs/screenshots/landing.png)
+![Tax Break home page with six country cards (India, Ireland, Netherlands, UK, US, Singapore), the features offered for the selected country, and a "Calculate my India tax" button](docs/screenshots/landing.png)
 
 ### Income and deduction form
 
-![Income & Deduction Details form showing the tax residence selector, assessment year and age category, and the salary fields with HRA and rent inputs](docs/screenshots/tax-form.png)
+![Tax form showing the country cards, a step progress bar with six clickable steps, and the salary fields with example values, help text and Back/Next navigation](docs/screenshots/tax-form.png)
+
+### Form 26AS import (India)
+
+![Basic info step with the "Have your Form 26AS?" upload panel showing the imported salary, interest, dividend and TDS amounts](docs/screenshots/form26as-import.png)
 
 ### Old vs New regime comparison
 
@@ -41,11 +45,11 @@ tax engine directly in the browser.
 
 ### Ireland form
 
-![Ireland tax form showing personal circumstances, employment income with bonus and benefits in kind, share awards and disposals, and pension and reliefs fields](docs/screenshots/ireland-form.png)
+![Ireland tax form on the employment income step, showing gross salary, bonus, benefits in kind and other income with examples and help text](docs/screenshots/ireland-form.png)
 
 ### Netherlands form
 
-![Netherlands tax form showing personal situation with the 30% ruling and fiscal partner options, Box 1 work income, owner-occupied home and deductions, and Box 2 and Box 3 fields](docs/screenshots/netherlands-form.png)
+![Netherlands tax form on the Box 1 work income step, showing gross salary, holiday allowance, bonus, taxable benefits and other Box 1 income](docs/screenshots/netherlands-form.png)
 
 ### Netherlands estimate
 
@@ -57,6 +61,12 @@ tax engine directly in the browser.
 
 ## Features
 
+- A guided, step-by-step form: pick your country from prominent country cards, then move through
+  the questions with a progress bar, clickable step chips and Back/Next buttons. Every field shows
+  an example value and plain-language help, and you can calculate at any point.
+- Uploading the Form 26AS text/CSV export (India) to pre-fill salary, interest, dividend and other
+  income together with the TDS and challan payments already made. The file is parsed in the
+  browser and never leaves your device.
 - Assessment Year selection covering the current and previous four financial years (FY 2021-22 to
   FY 2025-26), with slab rates, standard deduction, Section 87A rebate, surcharge and capital gains
   rates for each year encoded as versioned config objects so future years can be added easily.

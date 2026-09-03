@@ -20,3 +20,5 @@ export type { UsStateTaxConfig, UsStateTaxResult } from './calculators/usState';
 export { calculateCapitalGains, CAPITAL_GAINS_RATES } from './calculators/capitalGains';
 export { calculateAdvanceTax } from './calculators/advanceTax';
 export { recommendItrForm } from './calculators/itrRecommender';
+export { parseForm26AS } from './parsers/form26as';
+export type { Form26ASSummary, Form26ASSectionTotal } from './parsers/form26as';

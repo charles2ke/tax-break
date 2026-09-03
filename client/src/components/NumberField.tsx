@@ -1,24 +1,72 @@
+import { useState } from 'react';
+
 interface NumberFieldProps {
   label: string;
   value: number;
   onChange: (value: number) => void;
   helpText?: string;
+  /** Short, realistic sample value shown under the label, e.g. "9,60,000". */
+  example?: string;
   min?: number;
   disabled?: boolean;
 }
 
-export function NumberField({ label, value, onChange, helpText, min = 0, disabled = false }: NumberFieldProps) {
+/**
+ * Keeps what the user is typing in local state so an existing `0` can be deleted
+ * instead of sticking in front of every new digit. The field reports 0 to the
+ * parent while it is empty, and re-syncs whenever the parent changes the value
+ * from the outside (for example after a Form 26AS import).
+ */
+export function NumberField({
+  label,
+  value,
+  onChange,
+  helpText,
+  example,
+  min = 0,
+  disabled = false,
+}: NumberFieldProps) {
+  const [text, setText] = useState(() => (value === 0 ? '' : String(value)));
+  const [lastValue, setLastValue] = useState(value);
+
+  // Re-sync while rendering when the parent changes the value from the outside
+  // (for example after a Form 26AS import), without clobbering what is typed.
+  if (value !== lastValue) {
+    setLastValue(value);
+    const typed = text === '' ? 0 : Number(text);
+    if (!Number.isFinite(typed) || typed !== value) {
+      setText(value === 0 ? '' : String(value));
+    }
+  }
+
   return (
     <label className="block">
       <span className="text-sm font-medium text-slate-700">{label}</span>
+      {example && (
+        <span className="mt-0.5 block text-xs font-normal text-slate-400">Example: {example}</span>
+      )}
       <input
         type="number"
+        inputMode="decimal"
         min={min}
         disabled={disabled}
-        value={Number.isNaN(value) ? '' : value}
+        placeholder="0"
+        value={text}
         onChange={(e) => {
-          const parsed = Number(e.target.value);
-          onChange(e.target.value === '' ? 0 : Number.isFinite(parsed) ? Math.max(min, parsed) : 0);
+          const raw = e.target.value;
+          setText(raw);
+          if (raw === '') {
+            onChange(0);
+            return;
+          }
+          const parsed = Number(raw);
+          onChange(Number.isFinite(parsed) ? Math.max(min, parsed) : 0);
+        }}
+        onBlur={() => {
+          if (text === '') return;
+          const parsed = Number(text);
+          const normalised = Number.isFinite(parsed) ? Math.max(min, parsed) : 0;
+          setText(normalised === 0 ? '' : String(normalised));
         }}
         className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
       />

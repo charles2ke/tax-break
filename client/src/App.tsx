@@ -4,6 +4,7 @@ import type {
   InternationalTaxResult,
   RegimeComparisonResult,
   TaxCalculationInput,
+  TaxCountry,
 } from '@tax-break/tax-engine';
 import { calculateTax, ApiError } from './api';
 import { AuthProvider, useAuth } from './AuthContext';
@@ -83,6 +84,7 @@ function AppShell() {
   const [lastInput, setLastInput] = useState<TaxCalculationInput | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const [country, setCountry] = useState<TaxCountry>('india');
 
   const handleSubmit = async (input: TaxCalculationInput | InternationalTaxCalculationInput) => {
     setIsSubmitting(true);
@@ -104,9 +106,22 @@ function AppShell() {
   return (
     <div className="min-h-screen bg-slate-50">
       <NavBar view={view} setView={setView} />
-      {view === 'landing' && <LandingPage onGetStarted={() => setView('form')} />}
+      {view === 'landing' && (
+        <LandingPage
+          onGetStarted={(selected) => {
+            setCountry(selected);
+            setView('form');
+          }}
+        />
+      )}
       {view === 'form' && (
-        <TaxForm onSubmit={handleSubmit} isSubmitting={isSubmitting} errorMessage={errorMessage} />
+        <TaxForm
+          key={country}
+          initialCountry={country}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          errorMessage={errorMessage}
+        />
       )}
       {view === 'results' && result && (
         <ResultsView

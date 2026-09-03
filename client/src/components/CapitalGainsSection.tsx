@@ -37,24 +37,28 @@ export function CapitalGainsSection({ form, onChange }: Props) {
       <div className="grid gap-4 sm:grid-cols-2">
         <NumberField
           label="Short-Term Capital Gains - Listed Equity/Equity MF (Sec 111A)"
+          example="₹40,000"
           value={capitalGains.equitySTCG}
           onChange={(v) => update({ equitySTCG: v })}
           helpText={`Equity sold within 12 months. Taxed at a flat ${formatRate(rates.equitySTCGRate)}, regardless of your slab.`}
         />
         <NumberField
           label="Long-Term Capital Gains - Listed Equity/Equity MF (Sec 112A)"
+          example="₹1,80,000"
           value={capitalGains.equityLTCG}
           onChange={(v) => update({ equityLTCG: v })}
           helpText={`Equity held over 12 months. First ${formatCurrency(rates.equityLTCGExemption)} exempt per year, balance taxed at ${formatRate(rates.equityLTCGRate)}.`}
         />
         <NumberField
           label="Short-Term Capital Gains - Other Assets"
+          example="₹55,000"
           value={capitalGains.otherSTCG}
           onChange={(v) => update({ otherSTCG: v })}
           helpText="Debt funds, unlisted shares or property held short-term. Added to your income and taxed at slab rates."
         />
         <NumberField
           label="Long-Term Capital Gains - Other Assets (Sec 112)"
+          example="₹3,00,000"
           value={capitalGains.otherLTCG}
           onChange={(v) => update({ otherLTCG: v })}
           helpText={`Debt funds, property or unlisted shares held long-term, taxed at ${formatRate(rates.otherLTCGRate)}. Indexation benefit is not modelled.`}
@@ -63,6 +67,7 @@ export function CapitalGainsSection({ form, onChange }: Props) {
       <div className="grid gap-4 sm:grid-cols-2">
         <NumberField
           label="Tax Already Paid (TDS / Self-Assessment)"
+          example="₹1,05,000"
           value={form.taxAlreadyPaid}
           onChange={(v) => onChange((f) => ({ ...f, taxAlreadyPaid: v }))}
           helpText="TDS from Form 16 / Form 26AS plus any advance or self-assessment tax already paid. Used to estimate your advance tax schedule and 234B/234C interest."
