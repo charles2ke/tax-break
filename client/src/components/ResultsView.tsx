@@ -8,7 +8,11 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { InternationalTaxResult, RegimeComparisonResult, TaxCalculationInput } from '@tax-break/tax-engine';
+import type {
+  InternationalTaxResult,
+  RegimeComparisonResult,
+  TaxCalculationInput,
+} from '@tax-break/tax-engine';
 import { AdvanceTaxAndItrSection } from './AdvanceTaxAndItrSection';
 import { SaveExportActions } from './SaveExportActions';
 
@@ -163,7 +167,6 @@ export function ResultsView({ result, input, onBack, onRequireLogin }: Props) {
         for professional tax advice or official e-filing.
       </p>
     </div>
-
   );
 }
 
@@ -225,6 +228,56 @@ function InternationalResultsView({
               currency={result.currency}
             />
           </>
+        ) : result.country === 'netherlands' ? (
+          <>
+            <InternationalRow
+              label="Employment income (salary, holiday allowance, bonus, benefits)"
+              value={result.netherlands.employmentIncome}
+              currency={result.currency}
+            />
+            {result.netherlands.thirtyPercentExemption > 0 && (
+              <InternationalRow
+                label="Exempt under the 30% ruling"
+                value={result.netherlands.thirtyPercentExemption}
+                currency={result.currency}
+              />
+            )}
+            {result.netherlands.otherIncome > 0 && (
+              <InternationalRow
+                label="Other Box 1 income"
+                value={result.netherlands.otherIncome}
+                currency={result.currency}
+              />
+            )}
+            {result.netherlands.eigenwoningforfait > 0 && (
+              <InternationalRow
+                label="Eigenwoningforfait (notional rental value)"
+                value={result.netherlands.eigenwoningforfait}
+                currency={result.currency}
+              />
+            )}
+            {result.netherlands.mortgageInterestDeduction > 0 && (
+              <InternationalRow
+                label="Mortgage interest deducted"
+                value={result.netherlands.mortgageInterestDeduction}
+                currency={result.currency}
+              />
+            )}
+            {result.netherlands.pensionDeduction > 0 && (
+              <InternationalRow
+                label="Pension contributions deducted"
+                value={result.netherlands.pensionDeduction}
+                currency={result.currency}
+              />
+            )}
+            {result.netherlands.otherDeductions > 0 && (
+              <InternationalRow
+                label="Other personal deductions"
+                value={result.netherlands.otherDeductions}
+                currency={result.currency}
+              />
+            )}
+          </>
         ) : (
           <InternationalRow
             label="Standard deduction"
@@ -233,7 +286,7 @@ function InternationalResultsView({
           />
         )}
         <InternationalRow
-          label="Taxable income"
+          label={result.country === 'netherlands' ? 'Taxable Box 1 income' : 'Taxable income'}
           value={result.taxableIncome}
           currency={result.currency}
         />
@@ -243,6 +296,70 @@ function InternationalResultsView({
             value={result.ireland.standardRateCutOff}
             currency={result.currency}
           />
+        )}
+        {result.country === 'netherlands' && (
+          <>
+            <InternationalRow
+              label="Box 1 tax (work and home)"
+              value={result.netherlands.box1Tax}
+              currency={result.currency}
+            />
+            {result.netherlands.deductionRateAdjustment > 0 && (
+              <InternationalRow
+                label="of which deduction rate adjustment (relief capped at 37.48%)"
+                value={result.netherlands.deductionRateAdjustment}
+                currency={result.currency}
+              />
+            )}
+            {result.netherlands.box2Income > 0 && (
+              <>
+                <InternationalRow
+                  label="Box 2 income (substantial interest)"
+                  value={result.netherlands.box2Income}
+                  currency={result.currency}
+                />
+                <InternationalRow
+                  label="Box 2 tax"
+                  value={result.netherlands.box2Tax}
+                  currency={result.currency}
+                />
+              </>
+            )}
+            {result.netherlands.box3Assets > 0 && (
+              <>
+                <InternationalRow
+                  label="Box 3 assets after debts"
+                  value={result.netherlands.box3Assets}
+                  currency={result.currency}
+                />
+                <InternationalRow
+                  label="Box 3 tax-free allowance"
+                  value={result.netherlands.box3TaxFreeAllowance}
+                  currency={result.currency}
+                />
+                <InternationalRow
+                  label="Taxable deemed return"
+                  value={result.netherlands.box3DeemedReturn}
+                  currency={result.currency}
+                />
+                <InternationalRow
+                  label="Box 3 tax (36%)"
+                  value={result.netherlands.box3Tax}
+                  currency={result.currency}
+                />
+              </>
+            )}
+            <InternationalRow
+              label="General tax credit (algemene heffingskorting)"
+              value={result.netherlands.generalTaxCredit}
+              currency={result.currency}
+            />
+            <InternationalRow
+              label="Labour tax credit (arbeidskorting)"
+              value={result.netherlands.labourTaxCredit}
+              currency={result.currency}
+            />
+          </>
         )}
         {result.country === 'us' ? (
           <>
@@ -259,7 +376,7 @@ function InternationalResultsView({
               />
             )}
           </>
-        ) : result.taxCredits > 0 ? (
+        ) : result.taxCredits > 0 && result.country !== 'netherlands' ? (
           <>
             <InternationalRow
               label="Income tax before credits"
@@ -308,7 +425,9 @@ function InternationalResultsView({
         )}
         <InternationalRow
           label={
-            result.country === 'us' || result.country === 'ireland'
+            result.country === 'us' ||
+            result.country === 'ireland' ||
+            result.country === 'netherlands'
               ? 'Total estimated tax'
               : 'Estimated income tax'
           }
@@ -320,6 +439,13 @@ function InternationalResultsView({
           <InternationalRow
             label="Net income after tax"
             value={result.ireland.netIncome}
+            currency={result.currency}
+          />
+        )}
+        {result.country === 'netherlands' && (
+          <InternationalRow
+            label="Net income after tax"
+            value={result.netherlands.netIncome}
             currency={result.currency}
           />
         )}
@@ -337,8 +463,11 @@ function InternationalResultsView({
         {result.country === 'us' &&
           ' US figures assume a single filer; city and county income taxes are not included.'}
         {result.country === 'netherlands' &&
-          ' The Netherlands has no provincial or municipal income tax; Box 1 rates for taxpayers' +
-            ' below the AOW age are used, including the general and labour tax credits.'}{' '}
+          ' Dutch figures use the 2025 Box 1, Box 2 and Box 3 rates for a taxpayer below the AOW' +
+            ' age, including the general and labour tax credits and the 37.48% cap on relief for' +
+            ' mortgage interest and personal deductions. There is no provincial or municipal' +
+            ' income tax. Income-dependent healthcare contributions and allowances (toeslagen)' +
+            ' are not included.'}{' '}
         Confirm your return with the official filing service or a qualified professional.
       </p>
     </div>

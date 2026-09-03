@@ -1,9 +1,4 @@
-export type AssessmentYear =
-  | 'FY2021-22'
-  | 'FY2022-23'
-  | 'FY2023-24'
-  | 'FY2024-25'
-  | 'FY2025-26';
+export type AssessmentYear = 'FY2021-22' | 'FY2022-23' | 'FY2023-24' | 'FY2024-25' | 'FY2025-26';
 
 export type TaxCountry = 'india' | 'ireland' | 'netherlands' | 'uk' | 'us' | 'singapore';
 
@@ -89,11 +84,57 @@ export interface TaxCalculationInput {
 
 /** Two-letter postal codes for the 50 US states plus the District of Columbia. */
 export type UsState =
-  | 'AL' | 'AK' | 'AZ' | 'AR' | 'CA' | 'CO' | 'CT' | 'DE' | 'DC' | 'FL'
-  | 'GA' | 'HI' | 'ID' | 'IL' | 'IN' | 'IA' | 'KS' | 'KY' | 'LA' | 'ME'
-  | 'MD' | 'MA' | 'MI' | 'MN' | 'MS' | 'MO' | 'MT' | 'NE' | 'NV' | 'NH'
-  | 'NJ' | 'NM' | 'NY' | 'NC' | 'ND' | 'OH' | 'OK' | 'OR' | 'PA' | 'RI'
-  | 'SC' | 'SD' | 'TN' | 'TX' | 'UT' | 'VT' | 'VA' | 'WA' | 'WV' | 'WI' | 'WY';
+  | 'AL'
+  | 'AK'
+  | 'AZ'
+  | 'AR'
+  | 'CA'
+  | 'CO'
+  | 'CT'
+  | 'DE'
+  | 'DC'
+  | 'FL'
+  | 'GA'
+  | 'HI'
+  | 'ID'
+  | 'IL'
+  | 'IN'
+  | 'IA'
+  | 'KS'
+  | 'KY'
+  | 'LA'
+  | 'ME'
+  | 'MD'
+  | 'MA'
+  | 'MI'
+  | 'MN'
+  | 'MS'
+  | 'MO'
+  | 'MT'
+  | 'NE'
+  | 'NV'
+  | 'NH'
+  | 'NJ'
+  | 'NM'
+  | 'NY'
+  | 'NC'
+  | 'ND'
+  | 'OH'
+  | 'OK'
+  | 'OR'
+  | 'PA'
+  | 'RI'
+  | 'SC'
+  | 'SD'
+  | 'TN'
+  | 'TX'
+  | 'UT'
+  | 'VT'
+  | 'VA'
+  | 'WA'
+  | 'WV'
+  | 'WI'
+  | 'WY';
 
 type InternationalTaxCalculationBase = {
   /**
@@ -105,19 +146,11 @@ type InternationalTaxCalculationBase = {
 
 /** Personal circumstances that set the Irish standard rate cut-off point and personal tax credit. */
 export type IrelandFilingStatus =
-  | 'single'
-  | 'singleParent'
-  | 'marriedOneIncome'
-  | 'marriedTwoIncomes';
+  'single' | 'singleParent' | 'marriedOneIncome' | 'marriedTwoIncomes';
 
 /** Age band that caps the age-related percentage limit on Irish pension contribution relief. */
 export type IrelandPensionAgeBand =
-  | 'under30'
-  | '30to39'
-  | '40to49'
-  | '50to54'
-  | '55to59'
-  | '60plus';
+  'under30' | '30to39' | '40to49' | '50to54' | '55to59' | '60plus';
 
 /** Share awards vested and shares disposed of during the year. */
 export interface IrelandShareInput {
@@ -162,6 +195,50 @@ export type IrelandTaxCalculationInput = InternationalTaxCalculationBase & {
   state?: never;
 };
 
+/** Owner-occupied home (eigen woning) details feeding the Dutch Box 1 calculation. */
+export interface NetherlandsHomeInput {
+  /** WOZ value of your owner-occupied home, used for the notional rental value (eigenwoningforfait). */
+  wozValue?: number;
+  /** Deductible mortgage interest paid on the loan for your owner-occupied home. */
+  mortgageInterest?: number;
+}
+
+/** Box 3 assets and debts on 1 January (peildatum). */
+export interface NetherlandsBox3Input {
+  /** Bank and savings balances. */
+  savings?: number;
+  /** Investments, second properties and other assets. */
+  investments?: number;
+  /** Debts other than the mortgage on your owner-occupied home. */
+  debts?: number;
+}
+
+/** Detailed Dutch inputs. Every field other than `annualIncome` is optional. */
+export type NetherlandsTaxCalculationInput = InternationalTaxCalculationBase & {
+  country: 'netherlands';
+  /** Holiday allowance (vakantiegeld), normally 8% of gross salary. */
+  holidayAllowance?: number;
+  /** Bonus, commission or 13th month paid during the year. */
+  bonus?: number;
+  /** Taxable benefits such as the company car addition (bijtelling). */
+  taxableBenefits?: number;
+  /** Other Box 1 income such as freelance profit or alimony received. */
+  otherIncome?: number;
+  /** Employee pension contributions deductible from Box 1 income. */
+  pensionContributions?: number;
+  /** Whether the 30% ruling (30%-regeling) applies to your employment income. */
+  thirtyPercentRuling?: boolean;
+  /** Whether you have a fiscal partner, which doubles the Box 3 tax-free allowance. */
+  fiscalPartner?: boolean;
+  home?: NetherlandsHomeInput;
+  box3?: NetherlandsBox3Input;
+  /** Box 2 income from a substantial interest (dividends from a 5%+ shareholding). */
+  box2Income?: number;
+  /** Other personal deductions (aftrekposten) such as donations or specific healthcare costs. */
+  otherDeductions?: number;
+  state?: never;
+};
+
 export type InternationalTaxCalculationInput =
   | (InternationalTaxCalculationBase & {
       country: 'us';
@@ -172,8 +249,9 @@ export type InternationalTaxCalculationInput =
       state?: UsState;
     })
   | IrelandTaxCalculationInput
+  | NetherlandsTaxCalculationInput
   | (InternationalTaxCalculationBase & {
-      country: Exclude<TaxCountry, 'india' | 'us' | 'ireland'>;
+      country: Exclude<TaxCountry, 'india' | 'us' | 'ireland' | 'netherlands'>;
       state?: never;
     });
 
@@ -216,6 +294,53 @@ export interface IrelandTaxBreakdown {
   netIncome: number;
 }
 
+/** Dutch components of the estimate, in euros. */
+export interface NetherlandsTaxBreakdown {
+  /** Salary + holiday allowance + bonus + taxable benefits. */
+  employmentIncome: number;
+  /** Employment income left untaxed by the 30% ruling. */
+  thirtyPercentExemption: number;
+  /** Employment income actually subject to tax after the 30% ruling. */
+  taxableEmploymentIncome: number;
+  /** Other Box 1 income included in the assessment. */
+  otherIncome: number;
+  /** Employee pension contributions deducted from Box 1 income. */
+  pensionDeduction: number;
+  /** Notional rental value of the owner-occupied home added to Box 1 income. */
+  eigenwoningforfait: number;
+  /** Mortgage interest deducted from Box 1 income. */
+  mortgageInterestDeduction: number;
+  /** Other personal deductions (aftrekposten) allowed against Box 1 income. */
+  otherDeductions: number;
+  /**
+   * Tax added back because mortgage interest and personal deductions are only relieved at the
+   * second-bracket rate (tariefsaanpassing) instead of the top rate.
+   */
+  deductionRateAdjustment: number;
+  /** Taxable Box 1 income (work and home). */
+  box1Income: number;
+  /** Box 1 tax including the deduction rate adjustment, before tax credits. */
+  box1Tax: number;
+  /** General tax credit (algemene heffingskorting) before the non-refundable cap. */
+  generalTaxCredit: number;
+  /** Labour tax credit (arbeidskorting) before the non-refundable cap. */
+  labourTaxCredit: number;
+  /** Box 2 income from a substantial interest. */
+  box2Income: number;
+  /** Box 2 tax on substantial-interest income. */
+  box2Tax: number;
+  /** Box 3 assets less deductible debts on 1 January. */
+  box3Assets: number;
+  /** Box 3 tax-free allowance (heffingsvrij vermogen), doubled for fiscal partners. */
+  box3TaxFreeAllowance: number;
+  /** Deemed return on Box 3 assets after the tax-free allowance. */
+  box3DeemedReturn: number;
+  /** Box 3 tax on the deemed return. */
+  box3Tax: number;
+  /** Total income (including the 30% ruling exemption and Box 2 income) less all taxes above. */
+  netIncome: number;
+}
+
 export type InternationalTaxResult =
   | (InternationalTaxResultBase & {
       country: 'ireland';
@@ -223,6 +348,15 @@ export type InternationalTaxResult =
       stateTax?: never;
       stateTaxableIncome?: never;
       ireland: IrelandTaxBreakdown;
+      netherlands?: never;
+    })
+  | (InternationalTaxResultBase & {
+      country: 'netherlands';
+      state?: never;
+      stateTax?: never;
+      stateTaxableIncome?: never;
+      ireland?: never;
+      netherlands: NetherlandsTaxBreakdown;
     })
   | (InternationalTaxResultBase & {
       country: 'us';
@@ -233,13 +367,15 @@ export type InternationalTaxResult =
       /** Income subject to state income tax after the state deduction/exemption. */
       stateTaxableIncome?: number;
       ireland?: never;
+      netherlands?: never;
     })
   | (InternationalTaxResultBase & {
-      country: Exclude<TaxCountry, 'india' | 'us' | 'ireland'>;
+      country: Exclude<TaxCountry, 'india' | 'us' | 'ireland' | 'netherlands'>;
       state?: never;
       stateTax?: never;
       stateTaxableIncome?: never;
       ireland?: never;
+      netherlands?: never;
     });
 
 export interface SlabBracket {

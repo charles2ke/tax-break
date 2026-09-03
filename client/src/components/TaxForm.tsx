@@ -20,6 +20,12 @@ import {
   toIrelandTaxCalculationInput,
 } from './IrelandSection';
 import type { IrelandFormState } from './IrelandSection';
+import {
+  NetherlandsSection,
+  initialNetherlandsFormState,
+  toNetherlandsTaxCalculationInput,
+} from './NetherlandsSection';
+import type { NetherlandsFormState } from './NetherlandsSection';
 import { NumberField } from './NumberField';
 
 const US_STATES = listUsStates();
@@ -55,6 +61,9 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
   const [annualIncome, setAnnualIncome] = useState(0);
   const [usState, setUsState] = useState<UsState>('CA');
   const [irelandForm, setIrelandForm] = useState<IrelandFormState>(initialIrelandFormState);
+  const [netherlandsForm, setNetherlandsForm] = useState<NetherlandsFormState>(
+    initialNetherlandsFormState,
+  );
 
   const handleChange = (updater: (f: FormState) => FormState) => setForm(updater);
 
@@ -67,6 +76,8 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
           onSubmit(toTaxCalculationInput(form));
         } else if (country === 'ireland') {
           onSubmit(toIrelandTaxCalculationInput(irelandForm));
+        } else if (country === 'netherlands') {
+          onSubmit(toNetherlandsTaxCalculationInput(netherlandsForm));
         } else if (country === 'us') {
           onSubmit({ country, annualIncome, state: usState });
         } else {
@@ -90,10 +101,12 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
           <option value="singapore">Singapore</option>
         </select>
         <span className="mt-1 block text-xs text-slate-500">
-          Choose India for the detailed Old vs New Regime comparison, or Ireland for a detailed PAYE
-          estimate covering bonus, share awards, pension relief, USC, PRSI and capital gains. The US
-          estimate includes federal tax and state tax for the selected state; other countries give a
-          simplified resident individual estimate in their local currency.
+          Choose India for the detailed Old vs New Regime comparison, Ireland for a detailed PAYE
+          estimate covering bonus, share awards, pension relief, USC, PRSI and capital gains, or the
+          Netherlands for a detailed Box 1/2/3 estimate covering the 30% ruling, your owner-occupied
+          home and savings. The US estimate includes federal tax and state tax for the selected
+          state; other countries give a simplified resident individual estimate in their local
+          currency.
         </span>
       </label>
 
@@ -108,6 +121,8 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
         </>
       ) : country === 'ireland' ? (
         <IrelandSection form={irelandForm} onChange={setIrelandForm} />
+      ) : country === 'netherlands' ? (
+        <NetherlandsSection form={netherlandsForm} onChange={setNetherlandsForm} />
       ) : (
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-900">Annual Income</h2>
@@ -115,11 +130,7 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage }: Props) {
             label="Gross annual income (local currency)"
             value={annualIncome}
             onChange={setAnnualIncome}
-            helpText={
-              country === 'netherlands'
-                ? 'Your annual taxable Box 1 income in euros. The general and labour tax credits are applied automatically; the Netherlands has no provincial or municipal income tax.'
-                : 'Total gross income for the year in the local currency. Payroll/social-security contributions and local taxes are excluded.'
-            }
+            helpText="Total gross income for the year in the local currency. Payroll/social-security contributions and local taxes are excluded."
           />
           {country === 'us' && (
             <label className="block">

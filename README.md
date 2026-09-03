@@ -43,6 +43,14 @@ tax engine directly in the browser.
 
 ![Ireland tax form showing personal circumstances, employment income with bonus and benefits in kind, share awards and disposals, and pension and reliefs fields](docs/screenshots/ireland-form.png)
 
+### Netherlands form
+
+![Netherlands tax form showing personal situation with the 30% ruling and fiscal partner options, Box 1 work income, owner-occupied home and deductions, and Box 2 and Box 3 fields](docs/screenshots/netherlands-form.png)
+
+### Netherlands estimate
+
+![Netherlands income tax estimate showing employment income, the 30% ruling exemption, eigenwoningforfait, mortgage interest, pension deduction, taxable Box 1 income, Box 1 tax, Box 3 assets and tax, general and labour tax credits, total tax, net income and effective rate in euros](docs/screenshots/netherlands-estimate.png)
+
 ### International estimate
 
 ![Ireland income tax estimate showing employment income, share vesting, pension relief, taxable income, tax credits, USC, PRSI, capital gains tax, total tax, net income and effective rate in euros](docs/screenshots/international-estimate.png)
@@ -69,10 +77,18 @@ tax engine directly in the browser.
   Charge, Class A employee PRSI, and capital gains tax at 33% after the EUR 1,270 annual exemption
   and losses forward. The PRSI tapered credit for low weekly earnings and reduced USC rates for
   medical card holders are not applied.
-- 2025 resident individual income-tax slab estimates for the Netherlands, the UK, the US,
-  and Singapore in their local currency. The Dutch estimate uses Box 1 rates for taxpayers below the AOW age and applies the
-  general tax credit (algemene heffingskorting) and labour tax credit (arbeidskorting); the
-  Netherlands levies no provincial or municipal income tax.
+- A detailed 2025 Netherlands estimate for a resident below the AOW age covering Box 1 salary,
+  holiday allowance (vakantiegeld), bonus and taxable benefits, the 30% ruling (30% of employment
+  income up to the EUR 246,000 norm), deductible pension contributions, the owner-occupied home
+  (eigenwoningforfait plus mortgage interest, with relief on deductions capped at 37.48%), other
+  personal deductions, Box 2 substantial-interest income at 24.5%/31%, Box 3 savings and
+  investments (deemed returns of 1.44%/5.88%, debts above the EUR 3,800 threshold, the EUR 57,684
+  tax-free allowance doubled for fiscal partners, taxed at 36%), and the general tax credit
+  (algemene heffingskorting) and labour tax credit (arbeidskorting). The Netherlands levies no
+  provincial or municipal income tax; income-dependent healthcare contributions and allowances
+  (toeslagen) are not included.
+- 2025 resident individual income-tax slab estimates for the UK, the US, and Singapore in their
+  local currency.
 - US estimates use the 2025 single-filer federal brackets and standard deduction, and add state
   income tax for the selected state of residence (all 50 states plus DC). Local/city/county income
   taxes, tax credits (other than Ireland's and the Netherlands', noted above), and additional
