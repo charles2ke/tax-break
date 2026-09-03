@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface NumberFieldProps {
   label: string;
@@ -27,15 +27,20 @@ export function NumberField({
   disabled = false,
 }: NumberFieldProps) {
   const [text, setText] = useState(() => (value === 0 ? '' : String(value)));
+  const textRef = useRef(text);
+
+  useEffect(() => {
+    textRef.current = text;
+  }, [text]);
 
   // Re-sync when the parent changes the value from the outside
   // (for example after a Form 26AS import), without clobbering what is typed.
   useEffect(() => {
-    const typed = text === '' ? 0 : Number(text);
+    const typed = textRef.current === '' ? 0 : Number(textRef.current);
     if (!Number.isFinite(typed) || typed !== value) {
       setText(value === 0 ? '' : String(value));
     }
-  }, [text, value]);
+  }, [value]);
 
   return (
     <label className="block">
