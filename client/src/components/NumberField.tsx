@@ -29,16 +29,14 @@ export function NumberField({
   const [text, setText] = useState(() => (value === 0 ? '' : String(value)));
   const textRef = useRef(text);
 
-  useEffect(() => {
-    textRef.current = text;
-  }, [text]);
-
   // Re-sync when the parent changes the value from the outside
   // (for example after a Form 26AS import), without clobbering what is typed.
   useEffect(() => {
     const typed = textRef.current === '' ? 0 : Number(textRef.current);
     if (!Number.isFinite(typed) || typed !== value) {
-      setText(value === 0 ? '' : String(value));
+      const nextText = value === 0 ? '' : String(value);
+      textRef.current = nextText;
+      setText(nextText);
     }
   }, [value]);
 
@@ -57,6 +55,7 @@ export function NumberField({
         value={text}
         onChange={(e) => {
           const raw = e.target.value;
+          textRef.current = raw;
           setText(raw);
           if (raw === '') {
             onChange(0);
@@ -69,7 +68,9 @@ export function NumberField({
           if (text === '') return;
           const parsed = Number(text);
           const normalised = Number.isFinite(parsed) ? Math.max(min, parsed) : 0;
-          setText(normalised === 0 ? '' : String(normalised));
+          const nextText = normalised === 0 ? '' : String(normalised);
+          textRef.current = nextText;
+          setText(nextText);
         }}
         className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
       />
