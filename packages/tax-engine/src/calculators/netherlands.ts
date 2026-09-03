@@ -98,7 +98,7 @@ export function dutchBox3Tax(
 ): { assets: number; taxFreeAllowance: number; deemedReturn: number; tax: number } {
   const debtThreshold = fiscalPartner ? BOX3_DEBT_THRESHOLD * 2 : BOX3_DEBT_THRESHOLD;
   const deductibleDebts = Math.max(0, debts - debtThreshold);
-  const assets = round2(savings + investments - deductibleDebts);
+  const assets = round2(Math.max(0, savings + investments - deductibleDebts));
   const taxFreeAllowance = fiscalPartner ? BOX3_TAX_FREE_ALLOWANCE * 2 : BOX3_TAX_FREE_ALLOWANCE;
 
   if (assets <= taxFreeAllowance) {
