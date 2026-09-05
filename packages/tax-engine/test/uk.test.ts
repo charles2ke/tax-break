@@ -132,6 +132,7 @@ describe('calculateUkTax', () => {
       taxableBenefits: 5000,
       studentLoanPlan: 'plan2',
     });
+    expect(withoutBenefits.uk.studentLoanRepayment).toBe(1038);
     expect(withBenefits.uk.studentLoanRepayment).toBe(withoutBenefits.uk.studentLoanRepayment);
   });
 
