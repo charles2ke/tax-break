@@ -190,7 +190,7 @@ export function calculateUkTax(input: UkTaxCalculationInput): InternationalTaxRe
   // National Insurance is due on salary and bonus; benefits in kind are charged to the employer.
   const nationalInsurance = ukNationalInsurance(salary + bonus);
   const studentLoanRepayment = ukStudentLoanRepayment(
-    employmentIncome + otherNonSavingsIncome,
+    salary + bonus + otherNonSavingsIncome,
     studentLoanPlan,
   );
 

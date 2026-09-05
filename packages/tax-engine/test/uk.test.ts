@@ -120,6 +120,17 @@ describe('calculateUkTax', () => {
     );
   });
 
+  it('does not include taxable benefits when calculating student loan repayments', () => {
+    const result = calculateUkTax({
+      country: 'uk',
+      annualIncome: 40000,
+      taxableBenefits: 5000,
+      studentLoanPlan: 'plan2',
+    });
+    // (40,000 - 28,470) @ 9%
+    expect(result.uk.studentLoanRepayment).toBe(1038);
+  });
+
   it('reports net income after all deductions', () => {
     const result = calculateUkTax({ country: 'uk', annualIncome: 45000, bonus: 5000 });
     expect(result.grossIncome).toBe(50000);
