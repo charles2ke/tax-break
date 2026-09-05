@@ -9,7 +9,8 @@ describe('calculateInternationalTax', () => {
     expect(result.taxableIncome).toBe(84250);
     // 11,925 @ 10% + 36,550 @ 12% + 35,775 @ 22%
     expect(result.incomeTax).toBe(13449);
-    expect(result.totalTaxLiability).toBe(13449);
+    // Plus employee Social Security and Medicare tax of 7,650.00 on the wages.
+    expect(result.totalTaxLiability).toBe(21099);
     expect(result.stateTax).toBeUndefined();
   });
 
@@ -22,7 +23,7 @@ describe('calculateInternationalTax', () => {
     // California: 100,000 - 5,706 standard deduction = 94,294 taxable.
     expect(result.stateTaxableIncome).toBe(94294);
     expect(result.stateTax).toBeCloseTo(5311.7, 2);
-    expect(result.totalTaxLiability).toBeCloseTo(13449 + 5311.7, 2);
+    expect(result.totalTaxLiability).toBeCloseTo(21099 + 5311.7, 2);
     expect(result.effectiveTaxRate).toBeCloseTo(result.totalTaxLiability / 1000, 6);
   });
 
@@ -33,18 +34,21 @@ describe('calculateInternationalTax', () => {
       state: 'TX',
     });
     expect(result.stateTax).toBe(0);
-    expect(result.totalTaxLiability).toBe(result.incomeTax);
+    // Only the federal income tax and the employee payroll taxes remain.
+    expect(result.totalTaxLiability).toBe(21099);
   });
 
   it('calculates non-US countries without a state field', () => {
     const result = calculateInternationalTax({ country: 'uk', annualIncome: 50000 });
     expect(result.stateTax).toBeUndefined();
-    expect(result.totalTaxLiability).toBe(7486);
+    expect(result.totalTaxLiability).toBeCloseTo(10480.4, 2);
   });
 
   it('calculates UK income tax after the personal allowance', () => {
     const result = calculateInternationalTax({ country: 'uk', annualIncome: 50000 });
-    expect(result.totalTaxLiability).toBe(7486);
+    // (50,000 - 12,570) taxed at 20% = 7,486, plus 2,994.40 of employee National Insurance.
+    expect(result.incomeTax).toBe(7486);
+    expect(result.totalTaxLiability).toBeCloseTo(10480.4, 2);
   });
 
   it('calculates Irish income tax using the 2025 bands and PAYE tax credits', () => {

@@ -11,6 +11,9 @@ export { compareRegimes } from './calculators/compare';
 export { calculateInternationalTax } from './calculators/international';
 export { calculateIrelandTax } from './calculators/ireland';
 export { calculateNetherlandsTax } from './calculators/netherlands';
+export { calculateUkTax } from './calculators/uk';
+export { calculateUsTax } from './calculators/us';
+export { calculateSingaporeTax } from './calculators/singapore';
 export {
   calculateUsStateTax,
   listUsStates,
