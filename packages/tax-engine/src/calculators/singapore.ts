@@ -6,7 +6,7 @@ import {
   SlabBracket,
 } from '../types';
 
-/** Resident individual rates for Year of Assessment 2025 (income earned in 2024 onwards). */
+/** Resident individual rates for Year of Assessment 2025 (income earned in the 2024 calendar year). */
 const RESIDENT_SLABS: SlabBracket[] = [
   { from: 0, to: 20000, rate: 0 },
   { from: 20000, to: 30000, rate: 0.02 },

@@ -108,7 +108,7 @@ tax engine directly in the browser.
   profit and other income, interest, ordinary and qualified dividends and short/long-term capital
   gains, above-the-line adjustments (traditional 401(k)/IRA, HSA, student loan interest, half of
   self-employment tax), the standard or itemised deduction, preferential 0%/15%/20% rates on
-  qualified dividends and long-term gains, the child tax credit and credit for other dependants,
+  qualified dividends and long-term gains, the child tax credit and credit for other dependents,
   Social Security/Medicare and self-employment taxes, the 0.9% additional Medicare tax, and the
   3.8% net investment income tax. State income tax is added for the selected state of residence
   (all 50 states plus DC) using single-filer brackets; local/city/county income taxes are excluded.

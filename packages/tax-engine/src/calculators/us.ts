@@ -76,7 +76,8 @@ const CTC_PHASE_OUT_THRESHOLD: Record<UsFilingStatus, number> = {
   marriedSeparate: 200000,
   headOfHousehold: 200000,
 };
-const CTC_PHASE_OUT_RATE = 0.05;
+/** The credit falls by $50 for every $1,000, or part thereof, of income above the threshold. */
+const CTC_PHASE_OUT_PER_THOUSAND = 50;
 
 /** 2025 payroll taxes. */
 const SOCIAL_SECURITY_WAGE_BASE = 176100;
@@ -85,7 +86,11 @@ const MEDICARE_RATE = 0.0145;
 const ADDITIONAL_MEDICARE_RATE = 0.009;
 const SELF_EMPLOYMENT_TAXABLE_SHARE = 0.9235;
 
-/** Shared thresholds for the additional Medicare tax and the net investment income tax. */
+/**
+ * Shared thresholds for the additional Medicare tax and the net investment income tax. The
+ * additional Medicare tax compares earned income against the threshold, while the net investment
+ * income tax compares adjusted gross income against the same amounts.
+ */
 const HIGH_INCOME_THRESHOLD: Record<UsFilingStatus, number> = {
   single: 200000,
   marriedJoint: 250000,
@@ -155,8 +160,7 @@ export function usChildTaxCredit(
     Math.max(0, otherDependents) * OTHER_DEPENDENT_CREDIT;
   if (base <= 0) return 0;
   const excess = Math.max(0, adjustedGrossIncome - CTC_PHASE_OUT_THRESHOLD[filingStatus]);
-  // The credit is reduced by $50 for every $1,000 (or part thereof) of income above the threshold.
-  const reduction = Math.ceil(excess / 1000) * 1000 * CTC_PHASE_OUT_RATE;
+  const reduction = Math.ceil(excess / 1000) * CTC_PHASE_OUT_PER_THOUSAND;
   return round2(Math.max(0, base - reduction));
 }
 
