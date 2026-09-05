@@ -62,7 +62,10 @@ function positive(value: number | undefined): number {
 }
 
 /** Earned income relief, limited to the earned income actually assessed. */
-export function singaporeEarnedIncomeRelief(earnedIncome: number, ageBand: SingaporeAgeBand): number {
+export function singaporeEarnedIncomeRelief(
+  earnedIncome: number,
+  ageBand: SingaporeAgeBand,
+): number {
   return Math.min(Math.max(0, earnedIncome), EARNED_INCOME_RELIEF[ageBand]);
 }
 
@@ -82,9 +85,7 @@ export function singaporeLifeInsuranceRelief(premiums: number, cpfContributions:
  * expenses, approved donations, personal reliefs (subject to the $80,000 cap) and the personal
  * income tax rebate.
  */
-export function calculateSingaporeTax(
-  input: SingaporeTaxCalculationInput,
-): InternationalTaxResult {
+export function calculateSingaporeTax(input: SingaporeTaxCalculationInput): InternationalTaxResult {
   const salary = positive(input.annualIncome);
   const bonus = positive(input.bonus);
   const directorsFees = positive(input.directorsFees);

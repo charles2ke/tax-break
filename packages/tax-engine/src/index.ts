@@ -14,11 +14,7 @@ export { calculateNetherlandsTax } from './calculators/netherlands';
 export { calculateUkTax } from './calculators/uk';
 export { calculateUsTax } from './calculators/us';
 export { calculateSingaporeTax } from './calculators/singapore';
-export {
-  calculateUsStateTax,
-  listUsStates,
-  US_STATE_TAX_CONFIGS,
-} from './calculators/usState';
+export { calculateUsStateTax, listUsStates, US_STATE_TAX_CONFIGS } from './calculators/usState';
 export type { UsStateTaxConfig, UsStateTaxResult } from './calculators/usState';
 export { calculateCapitalGains, CAPITAL_GAINS_RATES } from './calculators/capitalGains';
 export { calculateAdvanceTax } from './calculators/advanceTax';

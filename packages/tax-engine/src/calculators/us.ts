@@ -126,8 +126,7 @@ export function usSelfEmploymentTax(selfEmploymentIncome: number, wages: number)
 export function usFicaTax(wages: number): number {
   const earnings = Math.max(0, wages);
   return round2(
-    Math.min(earnings, SOCIAL_SECURITY_WAGE_BASE) * SOCIAL_SECURITY_RATE +
-      earnings * MEDICARE_RATE,
+    Math.min(earnings, SOCIAL_SECURITY_WAGE_BASE) * SOCIAL_SECURITY_RATE + earnings * MEDICARE_RATE,
   );
 }
 
@@ -211,7 +210,9 @@ export function calculateUsTax(input: UsTaxCalculationInput): InternationalTaxRe
   const taxableIncome = round2(Math.max(0, adjustedGrossIncome - deductionUsed));
   // Preferential income sits at the top of taxable income; the rest is taxed at ordinary rates.
   const ordinaryTaxableIncome = round2(Math.max(0, taxableIncome - preferentialIncome));
-  const ordinaryTax = round2(calculateSlabTax(ordinaryTaxableIncome, FEDERAL_BRACKETS[filingStatus]));
+  const ordinaryTax = round2(
+    calculateSlabTax(ordinaryTaxableIncome, FEDERAL_BRACKETS[filingStatus]),
+  );
   const capitalGainsTax = usCapitalGainsTax(
     Math.min(preferentialIncome, taxableIncome),
     ordinaryTaxableIncome,
@@ -241,10 +242,8 @@ export function calculateUsTax(input: UsTaxCalculationInput): InternationalTaxRe
     shortTermCapitalGains +
     longTermCapitalGains;
   const netInvestmentIncomeTax = round2(
-    Math.min(
-      netInvestmentIncome,
-      Math.max(0, adjustedGrossIncome - NIIT_THRESHOLD[filingStatus]),
-    ) * NIIT_RATE,
+    Math.min(netInvestmentIncome, Math.max(0, adjustedGrossIncome - NIIT_THRESHOLD[filingStatus])) *
+      NIIT_RATE,
   );
 
   const stateResult = input.state ? calculateUsStateTax(grossIncome, input.state) : undefined;

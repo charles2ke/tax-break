@@ -118,9 +118,7 @@ export function calculateUkTax(input: UkTaxCalculationInput): InternationalTaxRe
   const pensionRelief = Math.min(positive(input.pensionContributions), nonSavingsBeforeRelief);
   const nonSavingsIncome = round2(nonSavingsBeforeRelief - pensionRelief);
 
-  const adjustedNetIncome = round2(
-    Math.max(0, grossIncome - pensionRelief - giftAidDonations),
-  );
+  const adjustedNetIncome = round2(Math.max(0, grossIncome - pensionRelief - giftAidDonations));
   const personalAllowance = round2(ukPersonalAllowance(adjustedNetIncome));
 
   // The allowance is set against non-savings income first, then savings, then dividends.

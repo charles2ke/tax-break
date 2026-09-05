@@ -24,10 +24,7 @@ describe('usCapitalGainsTax', () => {
   });
 
   it('charges 20% on gains above the upper threshold', () => {
-    expect(usCapitalGainsTax(100000, 500000, 'single')).toBeCloseTo(
-      33400 * 0.15 + 66600 * 0.2,
-      2,
-    );
+    expect(usCapitalGainsTax(100000, 500000, 'single')).toBeCloseTo(33400 * 0.15 + 66600 * 0.2, 2);
   });
 });
 
@@ -127,9 +124,6 @@ describe('calculateUsTax', () => {
     const result = calculateUsTax({ country: 'us', annualIncome: 100000, state: 'CA' });
     expect(result.state).toBe('CA');
     expect(result.stateTax).toBeCloseTo(5311.7, 2);
-    expect(result.totalTaxLiability).toBeCloseTo(
-      result.incomeTax + result.us.ficaTax + 5311.7,
-      2,
-    );
+    expect(result.totalTaxLiability).toBeCloseTo(result.incomeTax + result.us.ficaTax + 5311.7, 2);
   });
 });
