@@ -116,7 +116,9 @@ describe('calculateUsTax', () => {
       annualIncome: 20000,
       dependentsUnder17: 3,
     });
-    expect(result.us.childTaxCredit).toBe(result.incomeTax);
+    // The full credit is reported, but only the part covering the tax is applied.
+    expect(result.us.childTaxCredit).toBe(6600);
+    expect(result.taxCredits).toBe(result.incomeTax);
     expect(result.incomeTax - result.taxCredits).toBe(0);
   });
 

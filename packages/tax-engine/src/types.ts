@@ -522,7 +522,10 @@ export interface UsTaxBreakdown {
   ordinaryTax: number;
   /** Tax on qualified dividends and long-term gains at 0%/15%/20%. */
   capitalGainsTax: number;
-  /** Child tax credit and credit for other dependants, after the income phase-out. */
+  /**
+   * Child tax credit and credit for other dependants after the income phase-out, before the
+   * non-refundable cap in `taxCredits`.
+   */
   childTaxCredit: number;
   /** Social Security and Medicare tax withheld on wages. */
   ficaTax: number;

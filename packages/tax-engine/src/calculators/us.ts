@@ -286,7 +286,7 @@ export function calculateUsTax(input: UsTaxCalculationInput): InternationalTaxRe
       ordinaryTaxableIncome,
       ordinaryTax,
       capitalGainsTax,
-      childTaxCredit: taxCredits,
+      childTaxCredit,
       ficaTax,
       selfEmploymentTax,
       additionalMedicareTax,
