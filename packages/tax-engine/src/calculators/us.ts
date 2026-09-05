@@ -67,7 +67,7 @@ const CAPITAL_GAINS_THRESHOLDS: Record<UsFilingStatus, { fifteen: number; twenty
   headOfHousehold: { fifteen: 64750, twenty: 566700 },
 };
 
-/** Child tax credit and credit for other dependants, with the AGI phase-out. */
+/** Child tax credit and credit for other dependents, with the AGI phase-out. */
 const CHILD_TAX_CREDIT = 2200;
 const OTHER_DEPENDENT_CREDIT = 500;
 const CTC_PHASE_OUT_THRESHOLD: Record<UsFilingStatus, number> = {
@@ -85,14 +85,8 @@ const MEDICARE_RATE = 0.0145;
 const ADDITIONAL_MEDICARE_RATE = 0.009;
 const SELF_EMPLOYMENT_TAXABLE_SHARE = 0.9235;
 
-/** Thresholds for the additional Medicare tax and the net investment income tax. */
-const HIGH_EARNER_THRESHOLD: Record<UsFilingStatus, number> = {
-  single: 200000,
-  marriedJoint: 250000,
-  marriedSeparate: 125000,
-  headOfHousehold: 200000,
-};
-const NIIT_THRESHOLD: Record<UsFilingStatus, number> = {
+/** Shared thresholds for the additional Medicare tax and the net investment income tax. */
+const HIGH_INCOME_THRESHOLD: Record<UsFilingStatus, number> = {
   single: 200000,
   marriedJoint: 250000,
   marriedSeparate: 125000,
@@ -149,7 +143,7 @@ export function usCapitalGainsTax(
   return round2(inBand(fifteen, twenty) * 0.15 + inBand(twenty, null) * 0.2);
 }
 
-/** Child tax credit and credit for other dependants after the AGI phase-out. */
+/** Child tax credit and credit for other dependents after the AGI phase-out. */
 export function usChildTaxCredit(
   dependentsUnder17: number,
   otherDependents: number,
@@ -232,7 +226,7 @@ export function calculateUsTax(input: UsTaxCalculationInput): InternationalTaxRe
   const ficaTax = usFicaTax(wages);
   const earnedIncome = wages + selfEmploymentIncome * SELF_EMPLOYMENT_TAXABLE_SHARE;
   const additionalMedicareTax = round2(
-    Math.max(0, earnedIncome - HIGH_EARNER_THRESHOLD[filingStatus]) * ADDITIONAL_MEDICARE_RATE,
+    Math.max(0, earnedIncome - HIGH_INCOME_THRESHOLD[filingStatus]) * ADDITIONAL_MEDICARE_RATE,
   );
 
   const netInvestmentIncome =
@@ -242,7 +236,7 @@ export function calculateUsTax(input: UsTaxCalculationInput): InternationalTaxRe
     shortTermCapitalGains +
     longTermCapitalGains;
   const netInvestmentIncomeTax = round2(
-    Math.min(netInvestmentIncome, Math.max(0, adjustedGrossIncome - NIIT_THRESHOLD[filingStatus])) *
+    Math.min(netInvestmentIncome, Math.max(0, adjustedGrossIncome - HIGH_INCOME_THRESHOLD[filingStatus])) *
       NIIT_RATE,
   );
 

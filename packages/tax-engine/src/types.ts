@@ -306,7 +306,7 @@ export type UsTaxCalculationInput = InternationalTaxCalculationBase & {
   itemizedDeductions?: number;
   /** Qualifying children under 17 for the child tax credit. */
   dependentsUnder17?: number;
-  /** Other dependants qualifying for the $500 credit for other dependents. */
+  /** Other dependents qualifying for the $500 credit for other dependents. */
   otherDependents?: number;
   /**
    * State of residence, used to estimate state income tax on top of the federal liability.
@@ -375,6 +375,11 @@ export type InternationalTaxCalculationInput =
 interface InternationalTaxResultBase {
   currency: string;
   grossIncome: number;
+  /**
+   * The automatic deduction, allowance or relief applied before the rate bands: the standard or
+   * itemised deduction for the US, the personal allowance for the UK, the personal reliefs allowed
+   * for Singapore, and 0 where the country's reliefs are reported in its own breakdown instead.
+   */
   standardDeduction: number;
   taxableIncome: number;
   /** Slab/bracket tax before any non-refundable tax credits (federal tax for the US). */
@@ -523,7 +528,7 @@ export interface UsTaxBreakdown {
   /** Tax on qualified dividends and long-term gains at 0%/15%/20%. */
   capitalGainsTax: number;
   /**
-   * Child tax credit and credit for other dependants after the income phase-out, before the
+   * Child tax credit and credit for other dependents after the income phase-out, before the
    * non-refundable cap in `taxCredits`.
    */
   childTaxCredit: number;

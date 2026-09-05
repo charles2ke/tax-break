@@ -29,7 +29,7 @@ describe('usCapitalGainsTax', () => {
 });
 
 describe('usChildTaxCredit', () => {
-  it('gives $2,200 per child and $500 per other dependant', () => {
+  it('gives $2,200 per child and $500 per other dependent', () => {
     expect(usChildTaxCredit(2, 1, 100000, 'single')).toBe(4900);
   });
 
