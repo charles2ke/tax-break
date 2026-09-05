@@ -189,6 +189,7 @@ export function calculateUkTax(input: UkTaxCalculationInput): InternationalTaxRe
   const incomeTax = round2(nonSavingsTax + savingsTax + dividendTax);
   // National Insurance is due on salary and bonus; benefits in kind are charged to the employer.
   const nationalInsurance = ukNationalInsurance(salary + bonus);
+  // Student loan repayments are deducted from earnings (and other non-savings income), excluding benefits in kind.
   const studentLoanRepayment = ukStudentLoanRepayment(
     salary + bonus + otherNonSavingsIncome,
     studentLoanPlan,
