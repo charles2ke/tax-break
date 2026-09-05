@@ -540,7 +540,7 @@ function InternationalResultsView({
             )}
             {result.us.childTaxCredit > 0 && (
               <InternationalRow
-                label="Child tax credit and credit for other dependants"
+                label="Child tax credit and credit for other dependents"
                 value={result.us.childTaxCredit}
                 currency={result.currency}
               />

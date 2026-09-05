@@ -29,5 +29,11 @@ export function calculateInternationalTax(
     // Singapore: personal reliefs, approved donations and the personal income tax rebate.
     case 'singapore':
       return calculateSingaporeTax(input);
+    default:
+      throw new Error(
+        `Unsupported country for the international tax estimate: ${
+          (input as { country: string }).country
+        }`,
+      );
   }
 }

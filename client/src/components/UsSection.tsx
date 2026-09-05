@@ -151,11 +151,11 @@ export function UsSection({ form, onChange, step }: Props) {
               helpText="Qualifying children for the $2,200 child tax credit, which phases out above $200,000 ($400,000 if married filing jointly)."
             />
             <NumberField
-              label="Other dependants"
+              label="Other dependents"
               example="1"
               value={form.otherDependents}
               onChange={(v) => update({ otherDependents: v })}
-              helpText="Dependants who do not qualify as children under 17. Each attracts the $500 credit for other dependents."
+              helpText="Dependents who do not qualify as children under 17. Each attracts the $500 credit for other dependents."
             />
           </div>
         </section>
