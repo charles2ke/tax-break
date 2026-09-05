@@ -4,9 +4,7 @@ import type {
   InternationalTaxCalculationInput,
   TaxCalculationInput,
   TaxCountry,
-  UsState,
 } from '@tax-break/tax-engine';
-import { listUsStates } from '@tax-break/tax-engine';
 import type { FormState } from '../formTypes';
 import { initialFormState } from '../formTypes';
 import { COUNTRY_OPTIONS, getCountryOption } from '../countries';
@@ -31,15 +29,27 @@ import {
   toNetherlandsTaxCalculationInput,
 } from './NetherlandsSection';
 import type { NetherlandsFormState } from './NetherlandsSection';
-import { NumberField } from './NumberField';
-
-const US_STATES = listUsStates();
-
-const SIMPLE_COUNTRY_EXAMPLES: Partial<Record<TaxCountry, string>> = {
-  uk: '£55,000',
-  us: '$85,000',
-  singapore: 'S$120,000',
-};
+import {
+  UkSection,
+  UK_STEP_TITLES,
+  initialUkFormState,
+  toUkTaxCalculationInput,
+} from './UkSection';
+import type { UkFormState } from './UkSection';
+import {
+  UsSection,
+  US_STEP_TITLES,
+  initialUsFormState,
+  toUsTaxCalculationInput,
+} from './UsSection';
+import type { UsFormState } from './UsSection';
+import {
+  SingaporeSection,
+  SINGAPORE_STEP_TITLES,
+  initialSingaporeFormState,
+  toSingaporeTaxCalculationInput,
+} from './SingaporeSection';
+import type { SingaporeFormState } from './SingaporeSection';
 
 const INDIA_STEP_TITLES = [
   'Basic info',
@@ -80,11 +90,14 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage, initialCountry }
   const [form, setForm] = useState<FormState>(initialFormState);
   const [country, setCountry] = useState<TaxCountry>(initialCountry ?? 'india');
   const [step, setStep] = useState(0);
-  const [annualIncome, setAnnualIncome] = useState(0);
-  const [usState, setUsState] = useState<UsState>('CA');
   const [irelandForm, setIrelandForm] = useState<IrelandFormState>(initialIrelandFormState);
   const [netherlandsForm, setNetherlandsForm] = useState<NetherlandsFormState>(
     initialNetherlandsFormState,
+  );
+  const [ukForm, setUkForm] = useState<UkFormState>(initialUkFormState);
+  const [usForm, setUsForm] = useState<UsFormState>(initialUsFormState);
+  const [singaporeForm, setSingaporeForm] = useState<SingaporeFormState>(
+    initialSingaporeFormState,
   );
 
   const handleChange = (updater: (f: FormState) => FormState) => setForm(updater);
@@ -132,54 +145,23 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage, initialCountry }
         ),
       }));
     }
-    return [
-      {
-        title: 'Annual income',
-        content: (
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900">Annual Income</h2>
-            <p className="text-xs text-slate-500">
-              A simplified resident estimate for {selectedCountry.label}, in{' '}
-              {selectedCountry.currency}.
-            </p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <NumberField
-                label={`Gross annual income (${selectedCountry.currency})`}
-                value={annualIncome}
-                onChange={setAnnualIncome}
-                example={SIMPLE_COUNTRY_EXAMPLES[country]}
-                helpText="Total gross income for the year before any tax, as shown on your payslip or annual statement. Payroll/social-security contributions are not deducted."
-              />
-              {country === 'us' && (
-                <label className="block">
-                  <span className="text-sm font-medium text-slate-700">State of residence</span>
-                  <span className="mt-0.5 block text-xs font-normal text-slate-400">
-                    Example: California
-                  </span>
-                  <select
-                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
-                    value={usState}
-                    onChange={(e) => setUsState(e.target.value as UsState)}
-                  >
-                    {US_STATES.map((state) => (
-                      <option key={state.code} value={state.code}>
-                        {state.name}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="mt-1 block text-xs text-slate-500">
-                    The state you lived in for the year. Its income tax is added to the federal
-                    estimate for a single filer. City and county income taxes (e.g. New York City,
-                    Maryland counties) are not included.
-                  </span>
-                </label>
-              )}
-            </div>
-          </section>
-        ),
-      },
-    ];
-  }, [country, form, irelandForm, netherlandsForm, annualIncome, usState, selectedCountry]);
+    if (country === 'uk') {
+      return UK_STEP_TITLES.map((title, index) => ({
+        title,
+        content: <UkSection form={ukForm} onChange={setUkForm} step={index} />,
+      }));
+    }
+    if (country === 'us') {
+      return US_STEP_TITLES.map((title, index) => ({
+        title,
+        content: <UsSection form={usForm} onChange={setUsForm} step={index} />,
+      }));
+    }
+    return SINGAPORE_STEP_TITLES.map((title, index) => ({
+      title,
+      content: <SingaporeSection form={singaporeForm} onChange={setSingaporeForm} step={index} />,
+    }));
+  }, [country, form, irelandForm, netherlandsForm, ukForm, usForm, singaporeForm]);
 
   const currentStep = Math.min(step, steps.length - 1);
   const isLastStep = currentStep === steps.length - 1;
@@ -200,10 +182,12 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage, initialCountry }
           onSubmit(toIrelandTaxCalculationInput(irelandForm));
         } else if (country === 'netherlands') {
           onSubmit(toNetherlandsTaxCalculationInput(netherlandsForm));
+        } else if (country === 'uk') {
+          onSubmit(toUkTaxCalculationInput(ukForm));
         } else if (country === 'us') {
-          onSubmit({ country, annualIncome, state: usState });
+          onSubmit(toUsTaxCalculationInput(usForm));
         } else {
-          onSubmit({ country, annualIncome });
+          onSubmit(toSingaporeTaxCalculationInput(singaporeForm));
         }
       }}
     >

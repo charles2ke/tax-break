@@ -278,15 +278,127 @@ function InternationalResultsView({
               />
             )}
           </>
-        ) : (
-          <InternationalRow
-            label="Standard deduction"
-            value={result.standardDeduction}
-            currency={result.currency}
-          />
-        )}
+        ) : result.country === 'uk' ? (
+          <>
+            <InternationalRow
+              label="Employment income (salary, bonus, benefits)"
+              value={result.uk.employmentIncome}
+              currency={result.currency}
+            />
+            {result.uk.otherNonSavingsIncome > 0 && (
+              <InternationalRow
+                label="Self-employment and rental profit"
+                value={result.uk.otherNonSavingsIncome}
+                currency={result.currency}
+              />
+            )}
+            {result.uk.savingsInterest > 0 && (
+              <InternationalRow
+                label="Savings interest"
+                value={result.uk.savingsInterest}
+                currency={result.currency}
+              />
+            )}
+            {result.uk.dividendIncome > 0 && (
+              <InternationalRow
+                label="Dividend income"
+                value={result.uk.dividendIncome}
+                currency={result.currency}
+              />
+            )}
+            {result.uk.pensionRelief > 0 && (
+              <InternationalRow
+                label="Pension contributions relieved"
+                value={result.uk.pensionRelief}
+                currency={result.currency}
+              />
+            )}
+            <InternationalRow
+              label="Personal allowance"
+              value={result.uk.personalAllowance}
+              currency={result.currency}
+            />
+          </>
+        ) : result.country === 'singapore' ? (
+          <>
+            <InternationalRow
+              label="Employment income (salary, bonus, fees, benefits)"
+              value={result.singapore.employmentIncome}
+              currency={result.currency}
+            />
+            {result.singapore.otherIncome > 0 && (
+              <InternationalRow
+                label="Rental and other income"
+                value={result.singapore.otherIncome}
+                currency={result.currency}
+              />
+            )}
+            {result.singapore.employmentExpenses > 0 && (
+              <InternationalRow
+                label="Employment expenses"
+                value={result.singapore.employmentExpenses}
+                currency={result.currency}
+              />
+            )}
+            {result.singapore.donationDeduction > 0 && (
+              <InternationalRow
+                label="Approved donations (250% deduction)"
+                value={result.singapore.donationDeduction}
+                currency={result.currency}
+              />
+            )}
+            <InternationalRow
+              label="Assessable income"
+              value={result.singapore.assessableIncome}
+              currency={result.currency}
+            />
+            <InternationalRow
+              label="Personal reliefs allowed (capped at S$80,000)"
+              value={result.singapore.totalReliefsAllowed}
+              currency={result.currency}
+            />
+          </>
+        ) : result.country === 'us' ? (
+          <>
+            {result.us.preferentialIncome > 0 && (
+              <InternationalRow
+                label="of which qualified dividends and long-term gains"
+                value={result.us.preferentialIncome}
+                currency={result.currency}
+              />
+            )}
+            {result.us.adjustments > 0 && (
+              <InternationalRow
+                label="Above-the-line adjustments"
+                value={result.us.adjustments}
+                currency={result.currency}
+              />
+            )}
+            <InternationalRow
+              label="Adjusted gross income"
+              value={result.us.adjustedGrossIncome}
+              currency={result.currency}
+            />
+            <InternationalRow
+              label={
+                result.us.deductionUsed === result.us.itemizedDeductions &&
+                result.us.itemizedDeductions > result.us.standardDeduction
+                  ? 'Itemised deductions'
+                  : 'Standard deduction'
+              }
+              value={result.us.deductionUsed}
+              currency={result.currency}
+            />
+          </>
+        ) : null}
         <InternationalRow
-          label={result.country === 'netherlands' ? 'Taxable Box 1 income' : 'Taxable income'}
+          label={
+            result.country === 'netherlands'
+              ? 'Taxable Box 1 income'
+              : result.country === 'singapore'
+                ? 'Chargeable income'
+                : 'Taxable income'
+          }
           value={result.taxableIncome}
           currency={result.currency}
         />
@@ -361,13 +473,106 @@ function InternationalResultsView({
             />
           </>
         )}
-        {result.country === 'us' ? (
+        {result.country === 'uk' && (
           <>
             <InternationalRow
-              label="Estimated federal income tax"
+              label="Income tax on earnings and other income"
+              value={result.uk.nonSavingsTax}
+              currency={result.currency}
+            />
+            {result.uk.savingsInterest > 0 && (
+              <InternationalRow
+                label={`Tax on savings interest (£${result.uk.personalSavingsAllowance} allowance)`}
+                value={result.uk.savingsTax}
+                currency={result.currency}
+              />
+            )}
+            {result.uk.dividendIncome > 0 && (
+              <InternationalRow
+                label="Tax on dividends (after the £500 allowance)"
+                value={result.uk.dividendTax}
+                currency={result.currency}
+              />
+            )}
+            <InternationalRow
+              label="Employee National Insurance"
+              value={result.uk.nationalInsurance}
+              currency={result.currency}
+            />
+            {result.uk.studentLoanRepayment > 0 && (
+              <InternationalRow
+                label="Student loan repayment"
+                value={result.uk.studentLoanRepayment}
+                currency={result.currency}
+              />
+            )}
+          </>
+        )}
+        {result.country === 'singapore' && (
+          <>
+            <InternationalRow
+              label="Income tax before rebate"
               value={result.incomeTax}
               currency={result.currency}
             />
+            {result.singapore.taxRebate > 0 && (
+              <InternationalRow
+                label="Personal income tax rebate (60%, capped at S$200)"
+                value={result.singapore.taxRebate}
+                currency={result.currency}
+              />
+            )}
+          </>
+        )}
+        {result.country === 'us' ? (
+          <>
+            <InternationalRow
+              label="Federal tax on ordinary income"
+              value={result.us.ordinaryTax}
+              currency={result.currency}
+            />
+            {result.us.capitalGainsTax > 0 && (
+              <InternationalRow
+                label="Federal tax on qualified dividends and long-term gains"
+                value={result.us.capitalGainsTax}
+                currency={result.currency}
+              />
+            )}
+            {result.us.childTaxCredit > 0 && (
+              <InternationalRow
+                label="Child tax credit and credit for other dependents"
+                value={result.us.childTaxCredit}
+                currency={result.currency}
+              />
+            )}
+            {result.us.ficaTax > 0 && (
+              <InternationalRow
+                label="Social Security and Medicare tax"
+                value={result.us.ficaTax}
+                currency={result.currency}
+              />
+            )}
+            {result.us.selfEmploymentTax > 0 && (
+              <InternationalRow
+                label="Self-employment tax"
+                value={result.us.selfEmploymentTax}
+                currency={result.currency}
+              />
+            )}
+            {result.us.additionalMedicareTax > 0 && (
+              <InternationalRow
+                label="Additional Medicare tax (0.9%)"
+                value={result.us.additionalMedicareTax}
+                currency={result.currency}
+              />
+            )}
+            {result.us.netInvestmentIncomeTax > 0 && (
+              <InternationalRow
+                label="Net investment income tax (3.8%)"
+                value={result.us.netInvestmentIncomeTax}
+                currency={result.currency}
+              />
+            )}
             {result.stateTax !== undefined && (
               <InternationalRow
                 label={`Estimated state income tax (${result.state})`}
@@ -376,7 +581,9 @@ function InternationalResultsView({
               />
             )}
           </>
-        ) : result.taxCredits > 0 && result.country !== 'netherlands' ? (
+        ) : result.taxCredits > 0 &&
+          result.country !== 'netherlands' &&
+          result.country !== 'singapore' ? (
           <>
             <InternationalRow
               label="Income tax before credits"
@@ -424,13 +631,7 @@ function InternationalResultsView({
           </>
         )}
         <InternationalRow
-          label={
-            result.country === 'us' ||
-            result.country === 'ireland' ||
-            result.country === 'netherlands'
-              ? 'Total estimated tax'
-              : 'Estimated income tax'
-          }
+          label={result.country === 'singapore' ? 'Tax payable' : 'Total estimated tax'}
           value={result.totalTaxLiability}
           currency={result.currency}
           strong
@@ -449,6 +650,27 @@ function InternationalResultsView({
             currency={result.currency}
           />
         )}
+        {result.country === 'uk' && (
+          <InternationalRow
+            label="Net income after tax"
+            value={result.uk.netIncome}
+            currency={result.currency}
+          />
+        )}
+        {result.country === 'us' && (
+          <InternationalRow
+            label="Net income after tax"
+            value={result.us.netIncome}
+            currency={result.currency}
+          />
+        )}
+        {result.country === 'singapore' && (
+          <InternationalRow
+            label="Net income after tax"
+            value={result.singapore.netIncome}
+            currency={result.currency}
+          />
+        )}
         <InternationalRow label="Effective tax rate" value={result.effectiveTaxRate} suffix="%" />
       </dl>
       <p className="mt-8 text-xs text-slate-400">
@@ -460,8 +682,20 @@ function InternationalResultsView({
             ' PRSI rate, and assume you are under 70 with no medical card. The PRSI tapered' +
             ' credit for low weekly earnings and the reduced USC rates for medical card holders' +
             ' are not applied.'}
+        {result.country === 'uk' &&
+          ' UK figures use the 2025/26 England, Wales and Northern Ireland rates, the personal,' +
+            ' savings and dividend allowances, Class 1 employee National Insurance and student' +
+            ' loan repayments. Scottish rates, Class 2/4 National Insurance and the marriage' +
+            ' allowance are not applied.'}
         {result.country === 'us' &&
-          ' US figures assume a single filer; city and county income taxes are not included.'}
+          ' US figures use the 2025 federal brackets for your filing status, the standard or' +
+            ' itemised deduction, preferential capital gains rates, the child tax credit, payroll' +
+            ' taxes and the net investment income tax. State tax is estimated with single-filer' +
+            ' brackets, and city and county income taxes are not included.'}
+        {result.country === 'singapore' &&
+          ' Singapore figures use the Year of Assessment 2025 resident rates, the $80,000 personal' +
+            ' relief cap and the 60% tax rebate capped at $200. Employer CPF contributions and the' +
+            ' Working Mother\'s Child Relief are not modelled.'}
         {result.country === 'netherlands' &&
           ' Dutch figures use the 2025 Box 1, Box 2 and Box 3 rates for a taxpayer below the AOW' +
             ' age, including the general and labour tax credits and the 37.48% cap on relief for' +

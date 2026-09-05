@@ -97,12 +97,27 @@ tax engine directly in the browser.
   (algemene heffingskorting) and labour tax credit (arbeidskorting). The Netherlands levies no
   provincial or municipal income tax; income-dependent healthcare contributions and allowances
   (toeslagen) are not included.
-- 2025 resident individual income-tax slab estimates for the UK, the US, and Singapore in their
-  local currency.
-- US estimates use the 2025 single-filer federal brackets and standard deduction, and add state
-  income tax for the selected state of residence (all 50 states plus DC). Local/city/county income
-  taxes, tax credits (other than Ireland's and the Netherlands', noted above), and additional
-  payroll taxes are excluded unless already included in country rates.
+- A detailed 2025/26 UK estimate for a resident of England, Wales or Northern Ireland covering
+  salary, bonus and P11D benefits, self-employment and rental profit, savings interest and
+  dividends stacked in the statutory order with the starting rate for savings, the personal
+  savings allowance and the GBP 500 dividend allowance, the personal allowance taper above
+  GBP 100,000, pension and Gift Aid relief that widen the rate bands, Class 1 employee National
+  Insurance, and student loan (Plan 1/2/4/5) and postgraduate loan repayments. Scottish rates,
+  Class 2/4 National Insurance and the marriage allowance are not applied.
+- A detailed 2025 US estimate covering all four filing statuses, wages, bonus, self-employment
+  profit and other income, interest, ordinary and qualified dividends and short/long-term capital
+  gains, above-the-line adjustments (traditional 401(k)/IRA, HSA, student loan interest, half of
+  self-employment tax), the standard or itemised deduction, preferential 0%/15%/20% rates on
+  qualified dividends and long-term gains, the child tax credit and credit for other dependents,
+  Social Security/Medicare and self-employment taxes, the 0.9% additional Medicare tax, and the
+  3.8% net investment income tax. State income tax is added for the selected state of residence
+  (all 50 states plus DC) using single-filer brackets; local/city/county income taxes are excluded.
+- A detailed Singapore estimate for Year of Assessment 2025 covering salary, bonus, director's
+  fees, taxable benefits, rental and other income, employment expenses, the 250% deduction for
+  approved donations, earned income relief by age band, CPF, CPF cash top-up and SRS reliefs,
+  spouse, child and parent reliefs, NSman, course fees, life insurance and foreign maid levy
+  reliefs subject to the SGD 80,000 personal relief cap, and the 60% personal income tax rebate
+  capped at SGD 200.
 - Capital gains tax (equity/other STCG and LTCG, Sections 111A/112/112A) at the rates applicable to
   the selected year, factored into the regime comparison.
 - Advance tax installment schedule (15%/45%/75%/100% due-date breakdown) with an estimate of

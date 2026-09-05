@@ -239,25 +239,147 @@ export type NetherlandsTaxCalculationInput = InternationalTaxCalculationBase & {
   state?: never;
 };
 
+/** Student loan repayment plan used for the UK payroll deduction. */
+export type UkStudentLoanPlan =
+  | 'none'
+  | 'plan1'
+  | 'plan2'
+  | 'plan4'
+  | 'plan5'
+  | 'postgraduate';
+
+/** Detailed UK (England, Wales and Northern Ireland) inputs. Only `annualIncome` is required. */
+export type UkTaxCalculationInput = InternationalTaxCalculationBase & {
+  country: 'uk';
+  /** Bonus or commission paid through payroll during the tax year. */
+  bonus?: number;
+  /** Taxable benefits in kind reported on a P11D (company car, medical insurance). */
+  taxableBenefits?: number;
+  /** Profit from self-employment or freelancing, taxed as non-savings income. */
+  selfEmploymentIncome?: number;
+  /** Net profit from property let out during the year. */
+  rentalIncome?: number;
+  /** Interest from bank accounts, gilts and other savings. */
+  savingsInterest?: number;
+  /** Dividends received from company shares and funds. */
+  dividendIncome?: number;
+  /** Employee pension contributions relieved against income (net pay or relief at source). */
+  pensionContributions?: number;
+  /** Gift Aid donations, entered gross, which extend the basic and higher rate bands. */
+  giftAidDonations?: number;
+  /** Student loan plan repaid through payroll. Defaults to `none`. */
+  studentLoanPlan?: UkStudentLoanPlan;
+  state?: never;
+};
+
+/** US federal filing status. */
+export type UsFilingStatus = 'single' | 'marriedJoint' | 'marriedSeparate' | 'headOfHousehold';
+
+/** Detailed US inputs. Only `annualIncome` (wages) is required. */
+export type UsTaxCalculationInput = InternationalTaxCalculationBase & {
+  country: 'us';
+  /** Filing status used for the standard deduction, brackets and thresholds. Defaults to `single`. */
+  filingStatus?: UsFilingStatus;
+  /** Bonus and other supplemental wages included on your W-2. */
+  bonus?: number;
+  /** Net profit from self-employment, subject to self-employment tax. */
+  selfEmploymentIncome?: number;
+  /** Taxable interest income. */
+  interestIncome?: number;
+  /** Ordinary (non-qualified) dividends taxed at ordinary rates. */
+  ordinaryDividends?: number;
+  /** Qualified dividends taxed at the preferential long-term capital gains rates. */
+  qualifiedDividends?: number;
+  /** Net short-term capital gains, taxed at ordinary rates. */
+  shortTermCapitalGains?: number;
+  /** Net long-term capital gains, taxed at the preferential rates. */
+  longTermCapitalGains?: number;
+  /** Other taxable income such as rental profit or taxable retirement distributions. */
+  otherIncome?: number;
+  /** Pre-tax traditional 401(k)/403(b)/IRA contributions deducted from taxable wages. */
+  retirementContributions?: number;
+  /** Pre-tax HSA contributions. */
+  hsaContributions?: number;
+  /** Student loan interest paid, deductible above the line up to $2,500. */
+  studentLoanInterest?: number;
+  /** Total itemised deductions; used when they exceed the standard deduction. */
+  itemizedDeductions?: number;
+  /** Qualifying children under 17 for the child tax credit. */
+  dependentsUnder17?: number;
+  /** Other dependents qualifying for the $500 credit for other dependents. */
+  otherDependents?: number;
+  /**
+   * State of residence, used to estimate state income tax on top of the federal liability.
+   * Omit for a federal-only estimate.
+   */
+  state?: UsState;
+};
+
+/** Age band on 31 December that sets the Singapore earned income relief. */
+export type SingaporeAgeBand = 'below55' | '55to59' | '60plus';
+
+/** Personal reliefs claimed on a Singapore individual income tax return. */
+export interface SingaporeReliefsInput {
+  /** Compulsory employee CPF contributions on Singapore employment income. */
+  cpfContributions?: number;
+  /** Cash top-ups to your own or a family member's CPF Retirement/Special Account. */
+  cpfCashTopUp?: number;
+  /** Contributions to the Supplementary Retirement Scheme. */
+  srsContributions?: number;
+  /** Claim the $2,000 spouse relief. */
+  spouseRelief?: boolean;
+  /** Number of children claimed for Qualifying Child Relief ($4,000 each). */
+  qualifyingChildren?: number;
+  /** Number of dependant parents claimed for parent relief ($9,000 each, living with you). */
+  dependantParents?: number;
+  /** Claim the $3,000 NSman (self) relief. */
+  nsmanRelief?: boolean;
+  /** Course fees paid for approved courses, relieved up to $5,500. */
+  courseFees?: number;
+  /** Life insurance premiums, relieved only when CPF contributions are below $5,000. */
+  lifeInsurancePremiums?: number;
+  /** Employed domestic worker levy, foreign maid levy relief. */
+  foreignMaidLevy?: number;
+}
+
+/** Detailed Singapore inputs. Only `annualIncome` (employment income) is required. */
+export type SingaporeTaxCalculationInput = InternationalTaxCalculationBase & {
+  country: 'singapore';
+  /** Bonus, commission or AWS paid during the year. */
+  bonus?: number;
+  /** Director's fees approved during the year. */
+  directorsFees?: number;
+  /** Taxable benefits in kind such as accommodation or a car provided by your employer. */
+  taxableBenefits?: number;
+  /** Net rental income from property after deductible expenses. */
+  rentalIncome?: number;
+  /** Trade, business or other taxable income. */
+  otherIncome?: number;
+  /** Employment expenses incurred wholly in producing your employment income. */
+  employmentExpenses?: number;
+  /** Cash donations to approved Institutions of a Public Character (250% deduction). */
+  approvedDonations?: number;
+  /** Age band on 31 December, used for the earned income relief. Defaults to `below55`. */
+  ageBand?: SingaporeAgeBand;
+  reliefs?: SingaporeReliefsInput;
+  state?: never;
+};
+
 export type InternationalTaxCalculationInput =
-  | (InternationalTaxCalculationBase & {
-      country: 'us';
-      /**
-       * State of residence, used to estimate state income tax on top of the federal liability.
-       * Omit for a federal-only estimate.
-       */
-      state?: UsState;
-    })
+  | UsTaxCalculationInput
+  | UkTaxCalculationInput
+  | SingaporeTaxCalculationInput
   | IrelandTaxCalculationInput
-  | NetherlandsTaxCalculationInput
-  | (InternationalTaxCalculationBase & {
-      country: Exclude<TaxCountry, 'india' | 'us' | 'ireland' | 'netherlands'>;
-      state?: never;
-    });
+  | NetherlandsTaxCalculationInput;
 
 interface InternationalTaxResultBase {
   currency: string;
   grossIncome: number;
+  /**
+   * The automatic deduction, allowance or relief applied before the rate bands: the standard or
+   * itemised deduction for the US, the personal allowance for the UK, the personal reliefs allowed
+   * for Singapore, and 0 where the country's reliefs are reported in its own breakdown instead.
+   */
   standardDeduction: number;
   taxableIncome: number;
   /** Slab/bracket tax before any non-refundable tax credits (federal tax for the US). */
@@ -341,42 +463,166 @@ export interface NetherlandsTaxBreakdown {
   netIncome: number;
 }
 
+/** UK components of the estimate, in pounds. */
+export interface UkTaxBreakdown {
+  /** Salary + bonus + taxable benefits in kind. */
+  employmentIncome: number;
+  /** Self-employment profit and rental profit taxed as non-savings income. */
+  otherNonSavingsIncome: number;
+  /** Interest from savings included in the assessment. */
+  savingsInterest: number;
+  /** Dividends included in the assessment. */
+  dividendIncome: number;
+  /** Pension contributions relieved against income. */
+  pensionRelief: number;
+  /** Gross Gift Aid donations that extend the rate bands. */
+  giftAidDonations: number;
+  /** Income used to taper the personal allowance. */
+  adjustedNetIncome: number;
+  /** Personal allowance after the £100,000 taper. */
+  personalAllowance: number;
+  /** Starting rate for savings actually available (0% band). */
+  startingRateForSavings: number;
+  /** Personal savings allowance available at your highest rate. */
+  personalSavingsAllowance: number;
+  /** Dividend allowance (0% band) available. */
+  dividendAllowance: number;
+  /** Upper limit of the basic rate band after any Gift Aid extension. */
+  basicRateLimit: number;
+  /** Tax on non-savings income at 20%/40%/45%. */
+  nonSavingsTax: number;
+  /** Tax on savings interest above the 0% bands. */
+  savingsTax: number;
+  /** Tax on dividends above the dividend allowance. */
+  dividendTax: number;
+  /** Class 1 employee National Insurance on salary and bonus. */
+  nationalInsurance: number;
+  /** Student loan (and postgraduate loan) repayments deducted through payroll. */
+  studentLoanRepayment: number;
+  /** Total income less income tax, National Insurance and student loan repayments. */
+  netIncome: number;
+}
+
+/** US components of the estimate, in dollars. */
+export interface UsTaxBreakdown {
+  /** Filing status the estimate was produced for. */
+  filingStatus: UsFilingStatus;
+  /** Wages, bonus and other ordinary income before adjustments. */
+  ordinaryIncome: number;
+  /** Qualified dividends and net long-term capital gains taxed at preferential rates. */
+  preferentialIncome: number;
+  /** Above-the-line adjustments (retirement, HSA, student loan interest, half of SE tax). */
+  adjustments: number;
+  /** Adjusted gross income. */
+  adjustedGrossIncome: number;
+  /** Standard deduction for the filing status. */
+  standardDeduction: number;
+  /** Itemised deductions claimed, when higher than the standard deduction. */
+  itemizedDeductions: number;
+  /** Deduction actually used (the greater of the standard and itemised deductions). */
+  deductionUsed: number;
+  /** Taxable income taxed at ordinary rates. */
+  ordinaryTaxableIncome: number;
+  /** Tax on ordinary taxable income. */
+  ordinaryTax: number;
+  /** Tax on qualified dividends and long-term gains at 0%/15%/20%. */
+  capitalGainsTax: number;
+  /**
+   * Child tax credit and credit for other dependents after the income phase-out, before the
+   * non-refundable cap in `taxCredits`.
+   */
+  childTaxCredit: number;
+  /** Social Security and Medicare tax withheld on wages. */
+  ficaTax: number;
+  /** Self-employment tax on net self-employment earnings. */
+  selfEmploymentTax: number;
+  /** Additional Medicare tax of 0.9% on earnings above the threshold. */
+  additionalMedicareTax: number;
+  /** Net investment income tax of 3.8%. */
+  netInvestmentIncomeTax: number;
+  /** Total income less all federal and state taxes above. */
+  netIncome: number;
+}
+
+/** Singapore components of the estimate, in Singapore dollars. */
+export interface SingaporeTaxBreakdown {
+  /** Salary + bonus + director's fees + taxable benefits in kind. */
+  employmentIncome: number;
+  /** Rental profit and other taxable income. */
+  otherIncome: number;
+  /** Employment expenses deducted from employment income. */
+  employmentExpenses: number;
+  /** Deduction for approved donations, at 250% of the amount given. */
+  donationDeduction: number;
+  /** Assessable income after expenses and donations. */
+  assessableIncome: number;
+  /** Earned income relief based on your age band. */
+  earnedIncomeRelief: number;
+  /** CPF and SRS reliefs allowed. */
+  cpfAndSrsRelief: number;
+  /** Family reliefs (spouse, children, parents). */
+  familyRelief: number;
+  /** Other reliefs such as NSman, course fees, life insurance and the maid levy. */
+  otherRelief: number;
+  /** Total personal reliefs claimed before the $80,000 cap. */
+  totalReliefsBeforeCap: number;
+  /** Personal reliefs actually allowed after the $80,000 cap. */
+  totalReliefsAllowed: number;
+  /** Chargeable income after reliefs. */
+  chargeableIncome: number;
+  /** Personal income tax rebate for the year of assessment. */
+  taxRebate: number;
+  /** Total income less tax payable. */
+  netIncome: number;
+}
+
+/** Country-specific breakdown keys that are absent on results for other countries. */
+type OtherBreakdowns<K extends 'ireland' | 'netherlands' | 'uk' | 'us' | 'singapore'> = {
+  [P in Exclude<'ireland' | 'netherlands' | 'uk' | 'us' | 'singapore', K>]?: never;
+};
+
+type NoStateFields = {
+  state?: never;
+  stateTax?: never;
+  stateTaxableIncome?: never;
+};
+
 export type InternationalTaxResult =
-  | (InternationalTaxResultBase & {
-      country: 'ireland';
-      state?: never;
-      stateTax?: never;
-      stateTaxableIncome?: never;
-      ireland: IrelandTaxBreakdown;
-      netherlands?: never;
-    })
-  | (InternationalTaxResultBase & {
-      country: 'netherlands';
-      state?: never;
-      stateTax?: never;
-      stateTaxableIncome?: never;
-      ireland?: never;
-      netherlands: NetherlandsTaxBreakdown;
-    })
-  | (InternationalTaxResultBase & {
-      country: 'us';
-      /** The state of residence the state tax was estimated for. */
-      state?: UsState;
-      /** Estimated state income tax. */
-      stateTax?: number;
-      /** Income subject to state income tax after the state deduction/exemption. */
-      stateTaxableIncome?: number;
-      ireland?: never;
-      netherlands?: never;
-    })
-  | (InternationalTaxResultBase & {
-      country: Exclude<TaxCountry, 'india' | 'us' | 'ireland' | 'netherlands'>;
-      state?: never;
-      stateTax?: never;
-      stateTaxableIncome?: never;
-      ireland?: never;
-      netherlands?: never;
-    });
+  | (InternationalTaxResultBase &
+      NoStateFields &
+      OtherBreakdowns<'ireland'> & {
+        country: 'ireland';
+        ireland: IrelandTaxBreakdown;
+      })
+  | (InternationalTaxResultBase &
+      NoStateFields &
+      OtherBreakdowns<'netherlands'> & {
+        country: 'netherlands';
+        netherlands: NetherlandsTaxBreakdown;
+      })
+  | (InternationalTaxResultBase &
+      NoStateFields &
+      OtherBreakdowns<'uk'> & {
+        country: 'uk';
+        uk: UkTaxBreakdown;
+      })
+  | (InternationalTaxResultBase &
+      NoStateFields &
+      OtherBreakdowns<'singapore'> & {
+        country: 'singapore';
+        singapore: SingaporeTaxBreakdown;
+      })
+  | (InternationalTaxResultBase &
+      OtherBreakdowns<'us'> & {
+        country: 'us';
+        /** The state of residence the state tax was estimated for. */
+        state?: UsState;
+        /** Estimated state income tax. */
+        stateTax?: number;
+        /** Income subject to state income tax after the state deduction/exemption. */
+        stateTaxableIncome?: number;
+        us: UsTaxBreakdown;
+      });
 
 export interface SlabBracket {
   /** Lower bound of the bracket (inclusive). */
