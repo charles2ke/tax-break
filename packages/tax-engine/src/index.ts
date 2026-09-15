@@ -21,3 +21,15 @@ export { calculateAdvanceTax } from './calculators/advanceTax';
 export { recommendItrForm } from './calculators/itrRecommender';
 export { parseForm26AS } from './parsers/form26as';
 export type { Form26ASSummary, Form26ASSectionTotal } from './parsers/form26as';
+export { parseCapitalGainsStatement, CapitalGainsStatementError } from './parsers/capitalGainsStatement';
+export type {
+  CapitalGainsStatementSummary,
+  CapitalGainsStatementFormat,
+  CapitalGainsTrade,
+  CapitalGainsTerm,
+  CapitalGainsAssetClass,
+  IndiaCapitalGainsTotals,
+  UsCapitalGainsTotals,
+} from './parsers/capitalGainsStatement';
+export { generateItrJson, itrAssessmentYear, ItrJsonError } from './generators/itrJson';
+export type { GenerateItrJsonOptions, ItrTaxpayerDetails } from './generators/itrJson';
