@@ -114,7 +114,7 @@ function normaliseHeader(cell: string): string {
 function toNumber(cell: string | undefined): number | undefined {
   if (cell === undefined) return undefined;
   const cleaned = cell.replace(/[₹$,\s]/g, '').replace(/^\((.*)\)$/, '-$1');
-  if (!cleaned || !/^-?\d*\.?\d+$/.test(cleaned)) return undefined;
+  if (!cleaned || !/^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(cleaned)) return undefined;
   const parsed = Number(cleaned);
   return Number.isFinite(parsed) ? parsed : undefined;
 }
