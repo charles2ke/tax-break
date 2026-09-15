@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { ApiError } from '../api';
+import { OAuthButtons } from './OAuthButtons';
 
 interface Props {
   onSuccess: () => void;
@@ -63,6 +64,7 @@ export function SignupPage({ onSuccess, onSwitchToLogin }: Props) {
           {isSubmitting ? 'Creating account…' : 'Sign up'}
         </button>
       </form>
+      <OAuthButtons action="Sign up" />
       <p className="mt-4 text-sm text-slate-600">
         Already have an account?{' '}
         <button type="button" onClick={onSwitchToLogin} className="font-medium text-indigo-600 hover:underline">

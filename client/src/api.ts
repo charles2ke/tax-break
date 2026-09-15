@@ -1,5 +1,6 @@
 import type {
   AdvanceTaxResult,
+  Form26ASSummary,
   AssessmentYear,
   InternationalTaxCalculationInput,
   InternationalTaxResult,
@@ -143,6 +144,8 @@ export interface SavedTaxReturn {
   result: RegimeComparisonResult;
   efilingStatus: string | null;
   efilingAckNumber: string | null;
+  efilingProvider?: string | null;
+  efilingCheckedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -180,10 +183,97 @@ export interface EFilingSubmission {
   acknowledgementNumber: string;
   submittedAt: string;
   message: string;
+  provider?: string;
+  simulated?: boolean;
+  itrForm?: string;
 }
 
-export async function efileTaxReturn(id: number): Promise<EFilingSubmission> {
-  return request(`/api/tax-returns/${id}/efile`, { method: 'POST' });
+/** Personal details required to generate the ITR JSON when a real ERI provider is configured. */
+export interface ItrTaxpayerInput {
+  pan: string;
+  firstName?: string;
+  lastName: string;
+  dateOfBirth: string;
+  place?: string;
+}
+
+export async function efileTaxReturn(
+  id: number,
+  taxpayer?: ItrTaxpayerInput,
+): Promise<EFilingSubmission> {
+  return request(`/api/tax-returns/${id}/efile`, {
+    method: 'POST',
+    body: JSON.stringify(taxpayer ? { taxpayer } : {}),
+  });
+}
+
+/** Re-reads the filing status of a submitted return from the e-filing provider. */
+export async function refreshEfilingStatus(id: number): Promise<EFilingSubmission> {
+  return request(`/api/tax-returns/${id}/efile-status`);
+}
+
+export interface MailResult {
+  delivered: boolean;
+  provider: string;
+  message: string;
+}
+
+/** Emails the PDF export of a saved calculation to the signed-in user. */
+export async function emailTaxReturn(id: number): Promise<MailResult> {
+  return request(`/api/tax-returns/${id}/email`, { method: 'POST' });
+}
+
+// --- Integrations ---
+
+export interface IntegrationStatus {
+  efiling: { provider: string; simulated: boolean };
+  form26ASDownload: boolean;
+  fxRates: { provider: string };
+  oauthProviders: Array<{ name: string; label: string }>;
+}
+
+/** Reports which external integrations this deployment is wired up to. */
+export async function getIntegrationStatus(): Promise<IntegrationStatus | undefined> {
+  if (import.meta.env.VITE_CALCULATION_MODE === 'local') return undefined;
+  try {
+    return await request<IntegrationStatus>('/api/integrations/status');
+  } catch {
+    return undefined;
+  }
+}
+
+/** Downloads and parses Form 26AS through the configured e-filing intermediary. */
+export async function fetchForm26AS(
+  assessmentYear: string,
+  pan: string,
+): Promise<Form26ASSummary> {
+  const { summary } = await request<{ summary: Form26ASSummary }>('/api/integrations/form-26as', {
+    method: 'POST',
+    body: JSON.stringify({ assessmentYear, pan }),
+  });
+  return summary;
+}
+
+export interface FxRateSnapshot {
+  base: string;
+  date: string;
+  rates: Record<string, number>;
+  source: 'ecb' | 'cache' | 'static';
+}
+
+/** Daily reference exchange rates used to show an estimate in a second currency. */
+export async function getFxRates(): Promise<FxRateSnapshot | undefined> {
+  if (import.meta.env.VITE_CALCULATION_MODE === 'local') return undefined;
+  try {
+    return await request<FxRateSnapshot>('/api/integrations/fx-rates');
+  } catch {
+    return undefined;
+  }
+}
+
+/** URL that starts the OAuth sign-in flow for a provider. */
+export function oauthStartUrl(provider: string): string {
+  return `/api/auth/oauth/${provider}/start`;
 }
 
 // --- Admin config ---

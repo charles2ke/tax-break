@@ -1,5 +1,6 @@
 import { getConfig } from '@tax-break/tax-engine';
 import type { FormState } from '../formTypes';
+import { CapitalGainsStatementUpload } from './CapitalGainsStatementUpload';
 import { NumberField } from './NumberField';
 
 interface Props {
@@ -34,6 +35,17 @@ export function CapitalGainsSection({ form, onChange }: Props) {
         Gains from selling shares, mutual funds, property, or other capital assets during the
         year. Rates shown are the ones applicable to {config.label}.
       </p>
+      <CapitalGainsStatementUpload
+        variant="india"
+        onImport={(summary) =>
+          update({
+            equitySTCG: Math.max(summary.india.equitySTCG, 0),
+            equityLTCG: Math.max(summary.india.equityLTCG, 0),
+            otherSTCG: Math.max(summary.india.otherSTCG, 0),
+            otherLTCG: Math.max(summary.india.otherLTCG, 0),
+          })
+        }
+      />
       <div className="grid gap-4 sm:grid-cols-2">
         <NumberField
           label="Short-Term Capital Gains - Listed Equity/Equity MF (Sec 111A)"

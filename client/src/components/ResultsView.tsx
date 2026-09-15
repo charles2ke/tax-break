@@ -14,6 +14,7 @@ import type {
   TaxCalculationInput,
 } from '@tax-break/tax-engine';
 import { AdvanceTaxAndItrSection } from './AdvanceTaxAndItrSection';
+import { CurrencyConverter } from './CurrencyConverter';
 import { SaveExportActions } from './SaveExportActions';
 
 interface Props {
@@ -673,6 +674,11 @@ function InternationalResultsView({
         )}
         <InternationalRow label="Effective tax rate" value={result.effectiveTaxRate} suffix="%" />
       </dl>
+      <CurrencyConverter
+        amount={result.totalTaxLiability}
+        currency={result.currency}
+        label="Total estimated tax"
+      />
       <p className="mt-8 text-xs text-slate-400">
         This resident-individual estimate excludes most additional payroll/social-security
         contributions, local taxes, and other country-specific reliefs. It only applies tax credits

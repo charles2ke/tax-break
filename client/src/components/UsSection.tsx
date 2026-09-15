@@ -1,5 +1,6 @@
 import type { UsFilingStatus, UsState, UsTaxCalculationInput } from '@tax-break/tax-engine';
 import { listUsStates } from '@tax-break/tax-engine';
+import { CapitalGainsStatementUpload } from './CapitalGainsStatementUpload';
 import { NumberField } from './NumberField';
 
 const US_STATES = listUsStates();
@@ -209,6 +210,15 @@ export function UsSection({ form, onChange, step }: Props) {
             ordinary income. Investment income over $200,000 ($250,000 jointly) also attracts the
             3.8% net investment income tax.
           </p>
+          <CapitalGainsStatementUpload
+            variant="us"
+            onImport={(summary) =>
+              update({
+                shortTermCapitalGains: summary.us.shortTermGains,
+                longTermCapitalGains: summary.us.longTermGains,
+              })
+            }
+          />
           <div className="grid gap-4 sm:grid-cols-2">
             <NumberField
               label="Taxable interest ($)"
