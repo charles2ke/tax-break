@@ -120,7 +120,7 @@ export function TaxForm({ onSubmit, isSubmitting, errorMessage, initialCountry }
           default:
             return (
               <>
-                <Form26ASUpload onChange={handleChange} />
+                <Form26ASUpload assessmentYear={form.assessmentYear} onChange={handleChange} />
                 <BasicInfoSection form={form} onChange={handleChange} />
               </>
             );

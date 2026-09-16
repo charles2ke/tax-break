@@ -126,7 +126,17 @@ tax engine directly in the browser.
 - User accounts (signup/login/logout) secured with hashed passwords and JWT session cookies.
 - Saving calculations to your account, and listing/exporting/deleting them later.
 - Exporting a saved calculation as PDF or Excel (XLSX).
-- A simulated e-filing submission flow for saved returns (see [E-filing integration](#e-filing-integration)).
+- A simulated e-filing submission flow for saved returns, upgradeable to a real ERI/GSP partner
+  without code changes (see [E-filing integration](#e-filing-integration)).
+- Importing a broker capital gains statement (Indian tradewise realised P&L CSV, or a US Form
+  1099-B CSV) to fill in the capital gains fields, parsed entirely in your browser.
+- Downloading Form 26AS through the e-filing intermediary when one is configured, instead of
+  uploading the file yourself.
+- Showing an international estimate in a second currency using cached European Central Bank
+  reference rates.
+- A deep link to the official e-Pay Tax challan for paying your advance tax installment.
+- Optional Google/GitHub sign-in alongside email and password.
+- Emailing the PDF export of a saved calculation (see [Integrations](#integrations)).
 - An admin config panel to override slab/deduction configuration per assessment year without a
   redeploy (falls back to the built-in defaults; the first user to sign up becomes an admin).
 
@@ -195,8 +205,17 @@ server creates a local SQLite database (see `DB_PATH`) with the required tables.
   authenticated user's account (requires login).
 - `GET /api/tax-returns/:id/export/pdf`, `GET /api/tax-returns/:id/export/xlsx` — download a saved
   calculation as a PDF or Excel file.
-- `POST /api/tax-returns/:id/efile` — submits a saved return through a **simulated** e-filing
-  provider (see [E-filing integration](#e-filing-integration)).
+- `POST /api/tax-returns/:id/efile` — submits a saved return through the configured e-filing
+  provider (**simulated** by default; see [E-filing integration](#e-filing-integration)). Accepts an
+  optional `taxpayer` object (PAN, surname, date of birth) used to generate the ITR JSON.
+- `GET /api/tax-returns/:id/efile-status` — re-reads the filing status from the provider.
+- `POST /api/tax-returns/:id/email` — emails the PDF export to the signed-in user.
+- `GET /api/auth/oauth/providers`, `GET /api/auth/oauth/:provider/start`,
+  `GET /api/auth/oauth/:provider/callback` — OAuth sign-in, enabled only when client credentials
+  are configured.
+- `GET /api/integrations/status`, `POST /api/integrations/form-26as`,
+  `GET /api/integrations/fx-rates` — which integrations are live, Form 26AS download, and daily
+  reference exchange rates (see [Integrations](#integrations)).
 - `GET /api/admin/config/:assessmentYear`, `PUT /api/admin/config/:assessmentYear`,
   `DELETE /api/admin/config/:assessmentYear` — admin-only endpoints to view, override, or reset the
   tax configuration for an assessment year.
@@ -217,6 +236,13 @@ See `server/.env.example` for the full list with descriptions. Key variables:
 | `JWT_SECRET`            | Secret used to sign auth JWTs. **Required** in production; auto-generated per process in development. |
 | `SESSION_SECRET`        | Secret used to sign the CSRF session cookie (session holds no auth state). **Required** in production; auto-generated per process in development. |
 | `NODE_ENV`              | Set to `production` to require `JWT_SECRET`/`SESSION_SECRET` and enable secure cookies.               |
+| `EFILING_PROVIDER`      | `mock` (default) or `eri`. `eri` also needs `ERI_API_BASE_URL`, `ERI_CLIENT_ID`, `ERI_CLIENT_SECRET` (and optionally `ERI_ID` plus the `ERI_*_PATH` overrides). |
+| `FX_RATES_PROVIDER`     | `static` (default, built-in fallback table) or `ecb` (European Central Bank daily rates, cached in SQLite). Override the feed with `FX_RATES_URL`. |
+| `MAIL_PROVIDER`         | `console` (default, logs only) or `http` (posts to `MAIL_API_URL` with `MAIL_API_KEY`, from `MAIL_FROM`). |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Enable Google sign-in. Leave blank to disable.                                   |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | Enable GitHub sign-in. Leave blank to disable.                                   |
+| `OAUTH_REDIRECT_BASE_URL` / `OAUTH_SUCCESS_REDIRECT_URL` | Public base URL of the API (used to build the callback URI) and the page users land on after signing in. |
+| `HTTP_TIMEOUT_MS`       | Timeout applied to every outbound integration request (default `10000`).                              |
 
 ### Run the frontend client
 
@@ -273,11 +299,39 @@ obtaining API credentials — this is a compliance/registration process, not som
 completed purely through code changes. To keep the feature usable end-to-end while that access is
 pending, `server/src/services/efilingProvider.ts` defines an `EFilingProvider` interface and ships
 a `MockEFilingProvider` that simulates a submission (acknowledgement number, status) and clearly
-labels its response as simulated. Swap in a real implementation of `EFilingProvider` once
-credentials are available.
+labels its response as simulated.
+
+An `EriEFilingProvider` implementation of the same interface is included: it performs the OAuth
+client-credentials token exchange, uploads the ITR JSON generated by
+`packages/tax-engine/src/generators/itrJson.ts` (ITR-1 and ITR-4), polls the filing status and
+retrieves the acknowledgement. Set `EFILING_PROVIDER=eri` together with the `ERI_*` credentials to
+enable it; the default stays `mock`, so CI, the demo deployment and local development need no
+secrets. The generated ITR JSON is schema-shaped but must be validated against your partner's
+current ITD schema before filing for real.
+
+## Integrations
+
+Every external system sits behind an interface in `server/src/services/` with an offline default
+selected by an environment variable, so the app runs with no secrets and CI never makes network
+calls. `GET /api/integrations/status` reports which ones are live, and the UI hides the
+corresponding controls when they are not.
+
+| Integration          | Default (no secrets)            | Real implementation                                                        |
+| -------------------- | ------------------------------- | -------------------------------------------------------------------------- |
+| E-filing             | `MockEFilingProvider`            | `EriEFilingProvider` against a licensed ERI/GSP partner API                 |
+| Form 26AS / AIS      | Manual file upload               | Downloaded through the same ERI channel and parsed with `parseForm26AS`     |
+| Exchange rates       | Built-in static table            | European Central Bank daily reference rates, cached for the day in SQLite   |
+| Advance tax payment  | —                               | Deep link to the official e-Pay Tax challan (no payment is handled here)    |
+| Sign-in              | Email + password                 | Google and GitHub OAuth authorization-code flow                             |
+| Email                | Console logging                  | HTTP transactional email provider                                           |
+| Capital gains import | —                               | Broker tradewise CSV and US Form 1099-B CSV, parsed in the browser          |
+
+Outbound requests get a timeout, one retry on transient failures, and redacted logging; credentials
+are only ever read from environment variables.
 
 
 ## Out of Scope (for now)
 
-Real e-filing submission (beyond the simulated flow described above), email verification/password
-reset, and multi-factor authentication are not part of this version.
+Live e-filing without an ERI/GSP agreement (the provider seam and ITR JSON generator are in place,
+but the credentials are a registration process), account-aggregator/Plaid-style bank links, email
+verification/password reset, and multi-factor authentication are not part of this version.

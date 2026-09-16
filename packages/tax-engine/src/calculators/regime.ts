@@ -22,15 +22,17 @@ function calculateGrossIncome(
   homeLoanInterestCap: number,
   regime: Regime,
   otherSTCG: number,
-): { grossTotalIncome: number; salaryIncome: number } {
+): { grossTotalIncome: number; salaryIncome: number; hraExemption: number } {
   let salaryIncome = 0;
+  let hraExemption = 0;
   if (input.salary) {
     const { basic, hraReceived, rentPaid, cityType, lta, specialAllowance, otherTaxableAllowances } =
       input.salary;
     // HRA exemption under Section 10(13A) is only available under the Old Regime; the entire
     // HRA received is taxable under the New Regime.
-    const taxableHra =
-      regime === 'old' ? calculateHraExemption(basic, hraReceived, rentPaid, cityType).taxableHra : Math.max(0, hraReceived);
+    const hraCalc = calculateHraExemption(basic, hraReceived, rentPaid, cityType);
+    hraExemption = regime === 'old' ? hraCalc.exemptAmount : 0;
+    const taxableHra = regime === 'old' ? hraCalc.taxableHra : Math.max(0, hraReceived);
     salaryIncome =
       Math.max(0, basic) +
       taxableHra +
@@ -67,7 +69,7 @@ function calculateGrossIncome(
 
   const grossTotalIncome = salaryIncome + housePropertyIncome + otherIncomeTotal + otherSTCG;
 
-  return { grossTotalIncome, salaryIncome };
+  return { grossTotalIncome, salaryIncome, hraExemption };
 }
 
 /**
@@ -85,7 +87,7 @@ export function calculateTaxForRegime(
 
   const capitalGains = calculateCapitalGains(input.capitalGains, config.capitalGains);
 
-  const { grossTotalIncome, salaryIncome } = calculateGrossIncome(
+  const { grossTotalIncome, salaryIncome, hraExemption } = calculateGrossIncome(
     input,
     config.homeLoanInterestCap.selfOccupied,
     regime,
@@ -147,5 +149,7 @@ export function calculateTaxForRegime(
     capitalGains,
     totalTaxLiability,
     effectiveTaxRate,
+    taxableSalaryIncome: salaryIncome,
+    hraExemption,
   };
 }

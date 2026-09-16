@@ -9,6 +9,8 @@ export interface TaxReturnRecord {
   result_json: string;
   efiling_status: string | null;
   efiling_ack_number: string | null;
+  efiling_provider: string | null;
+  efiling_checked_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -49,11 +51,21 @@ export function deleteTaxReturn(id: number, userId: number): boolean {
   return result.changes > 0;
 }
 
-export function updateEfilingStatus(id: number, status: string, ackNumber: string): void {
+export function updateEfilingStatus(
+  id: number,
+  status: string,
+  ackNumber: string,
+  provider?: string,
+): void {
   getDb()
     .prepare(
-      `UPDATE tax_returns SET efiling_status = ?, efiling_ack_number = ?, updated_at = datetime('now')
+      `UPDATE tax_returns
+       SET efiling_status = ?,
+           efiling_ack_number = ?,
+           efiling_provider = COALESCE(?, efiling_provider),
+           efiling_checked_at = datetime('now'),
+           updated_at = datetime('now')
        WHERE id = ?`,
     )
-    .run(status, ackNumber, id);
+    .run(status, ackNumber, provider ?? null, id);
 }

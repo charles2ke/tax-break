@@ -1,9 +1,11 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Form26ASSummary } from '@tax-break/tax-engine';
 import { parseForm26AS } from '@tax-break/tax-engine';
+import { fetchForm26AS, getIntegrationStatus } from '../api';
 import type { FormState } from '../formTypes';
 
 interface Props {
+  assessmentYear: string;
   onChange: (updater: (form: FormState) => FormState) => void;
 }
 
@@ -34,11 +36,44 @@ function applySummary(form: FormState, summary: Form26ASSummary): FormState {
   };
 }
 
-export function Form26ASUpload({ onChange }: Props) {
+export function Form26ASUpload({ assessmentYear, onChange }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [summary, setSummary] = useState<Form26ASSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [portalAvailable, setPortalAvailable] = useState(false);
+  const [pan, setPan] = useState('');
+  const [fetching, setFetching] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getIntegrationStatus().then((status) => {
+      if (!cancelled) setPortalAvailable(status?.form26ASDownload ?? false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handlePortalFetch = async () => {
+    setError(null);
+    setSummary(null);
+    setFileName(null);
+    setFetching(true);
+    try {
+      const parsed = await fetchForm26AS(assessmentYear, pan.trim().toUpperCase());
+      onChange((form) => applySummary(form, parsed));
+      setSummary(parsed);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Form 26AS could not be downloaded. Please upload the statement instead.',
+      );
+    } finally {
+      setFetching(false);
+    }
+  };
 
   const handleFile = async (file: File) => {
     setError(null);
@@ -101,6 +136,33 @@ export function Form26ASUpload({ onChange }: Props) {
         </button>
         {fileName && <span className="text-xs text-slate-500">{fileName}</span>}
       </div>
+
+      {portalAvailable && (
+        <div className="mt-3 border-t border-indigo-200 pt-3">
+          <p className="text-xs text-slate-600">
+            This deployment is connected to an authorised e-filing intermediary, so we can download
+            Form 26AS for you instead. Enter the PAN the statement belongs to.
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              value={pan}
+              onChange={(e) => setPan(e.target.value)}
+              placeholder="ABCDE1234F"
+              maxLength={10}
+              className="w-40 rounded-md border border-slate-300 px-3 py-2 text-sm uppercase shadow-sm"
+            />
+            <button
+              type="button"
+              disabled={fetching || pan.trim().length !== 10}
+              onClick={() => void handlePortalFetch()}
+              className="rounded-md border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {fetching ? 'Fetching…' : 'Fetch from the portal'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && <p className="mt-3 text-xs font-medium text-red-600">{error}</p>}
 

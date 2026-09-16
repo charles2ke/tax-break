@@ -9,7 +9,7 @@
     "client"
   ],
   "scripts": {
-    "test": "npm run test --workspace=packages/tax-engine",
+    "test": "npm run test --workspace=packages/tax-engine && npm run test --workspace=server",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write .",
     "build": "npm run build --workspace=packages/tax-engine && npm run build --workspace=server && npm run build --workspace=client",

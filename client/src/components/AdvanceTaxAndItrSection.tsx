@@ -11,6 +11,10 @@ interface Props {
   totalIncome: number;
 }
 
+/** Pre-login challan (e-Pay Tax) flow on the income tax portal. */
+const EPAY_TAX_URL =
+  'https://eportal.incometax.gov.in/iec/foservices/#/e-pay-tax-prelogin/user-details';
+
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -84,6 +88,21 @@ export function AdvanceTaxAndItrSection({
                   ))}
                 </tbody>
               </table>
+              <div className="mt-3 rounded-md bg-slate-50 p-3">
+                <a
+                  href={EPAY_TAX_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-indigo-700 underline"
+                >
+                  Pay this installment on the income tax portal →
+                </a>
+                <p className="mt-1 text-xs text-slate-500">
+                  Opens the official e-Pay Tax challan. Choose <strong>(100) Advance Tax</strong> for
+                  financial year {assessmentYear.replace('FY', '').trim()} and enter the cumulative
+                  amount due above; we never handle your payment.
+                </p>
+              </div>
               {advanceTax.totalInterest > 0 && (
                 <p className="mt-2 text-xs text-amber-700">
                   Estimated interest (Sec 234B/234C) if unpaid on time:{' '}

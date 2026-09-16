@@ -7,18 +7,10 @@ function formatCurrency(value: number): string {
   return `Rs. ${Math.round(value).toLocaleString('en-IN')}`;
 }
 
-/** Streams a simple PDF summary of a saved tax return directly to the HTTP response. */
-export function streamTaxReturnPdf(res: Response, record: TaxReturnRecord): void {
+/** Builds the PDF summary document for a saved tax return. The caller must call `doc.end()`. */
+function buildTaxReturnPdf(record: TaxReturnRecord): PDFKit.PDFDocument {
   const result = JSON.parse(record.result_json);
-
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader(
-    'Content-Disposition',
-    `attachment; filename="tax-return-${record.id}.pdf"`,
-  );
-
   const doc = new PDFDocument({ margin: 50 });
-  doc.pipe(res);
 
   doc.fontSize(18).text('Tax Break - Tax Calculation Summary', { align: 'center' });
   doc.moveDown();
@@ -60,7 +52,28 @@ export function streamTaxReturnPdf(res: Response, record: TaxReturnRecord): void
         'tax advice or the official Income Tax Department e-filing portal.',
     );
 
+  return doc;
+}
+
+/** Streams a simple PDF summary of a saved tax return directly to the HTTP response. */
+export function streamTaxReturnPdf(res: Response, record: TaxReturnRecord): void {
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="tax-return-${record.id}.pdf"`);
+  const doc = buildTaxReturnPdf(record);
+  doc.pipe(res);
   doc.end();
+}
+
+/** Renders the same PDF summary into a buffer, for emailing it as an attachment. */
+export function renderTaxReturnPdfBuffer(record: TaxReturnRecord): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    const doc = buildTaxReturnPdf(record);
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+    doc.end();
+  });
 }
 
 /** Streams an Excel workbook summary of a saved tax return directly to the HTTP response. */

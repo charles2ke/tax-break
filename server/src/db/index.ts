@@ -56,6 +56,14 @@ function migrate(db: Database.Database): void {
 
     CREATE INDEX IF NOT EXISTS idx_tax_returns_user_id ON tax_returns(user_id);
 
+    CREATE TABLE IF NOT EXISTS fx_rates (
+      rate_date TEXT NOT NULL,
+      base_currency TEXT NOT NULL,
+      rates_json TEXT NOT NULL,
+      fetched_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (rate_date, base_currency)
+    );
+
     CREATE TABLE IF NOT EXISTS config_overrides (
       assessment_year TEXT PRIMARY KEY,
       config_json TEXT NOT NULL,
@@ -63,6 +71,23 @@ function migrate(db: Database.Database): void {
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  addColumnIfMissing(db, 'users', 'oauth_provider', 'TEXT');
+  addColumnIfMissing(db, 'users', 'oauth_subject', 'TEXT');
+  addColumnIfMissing(db, 'tax_returns', 'efiling_provider', 'TEXT');
+  addColumnIfMissing(db, 'tax_returns', 'efiling_checked_at', 'TEXT');
+}
+
+/** Adds a column to an existing table, so databases created by an earlier version keep working. */
+function addColumnIfMissing(
+  db: Database.Database,
+  table: string,
+  column: string,
+  definition: string,
+): void {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  if (columns.some((entry) => entry.name === column)) return;
+  db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
 }
 
 /** Test-only helper to reset module state between test files that use in-memory databases. */

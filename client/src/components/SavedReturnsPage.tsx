@@ -3,11 +3,14 @@ import {
   ApiError,
   deleteSavedTaxReturn,
   efileTaxReturn,
+  emailTaxReturn,
   exportExcelUrl,
   exportPdfUrl,
+  getIntegrationStatus,
   listSavedTaxReturns,
+  refreshEfilingStatus,
 } from '../api';
-import type { SavedTaxReturn } from '../api';
+import type { ItrTaxpayerInput, SavedTaxReturn } from '../api';
 
 interface Props {
   onBack: () => void;
@@ -26,6 +29,25 @@ export function SavedReturnsPage({ onBack }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | undefined>();
   const [efilingMessage, setEfilingMessage] = useState<string | undefined>();
+  const [simulatedEfiling, setSimulatedEfiling] = useState(true);
+  const [efilingFormFor, setEfilingFormFor] = useState<number | undefined>();
+  const [taxpayer, setTaxpayer] = useState<ItrTaxpayerInput>({
+    pan: '',
+    firstName: '',
+    lastName: '',
+    dateOfBirth: '',
+  });
+  const [busyId, setBusyId] = useState<number | undefined>();
+
+  useEffect(() => {
+    let cancelled = false;
+    void getIntegrationStatus().then((status) => {
+      if (!cancelled && status) setSimulatedEfiling(status.efiling.simulated);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const load = () => {
     setIsLoading(true);
@@ -46,16 +68,60 @@ export function SavedReturnsPage({ onBack }: Props) {
     }
   };
 
-  const handleEfile = async (id: number) => {
+  const submitEfile = async (id: number, details?: ItrTaxpayerInput) => {
     setEfilingMessage(undefined);
+    setError(undefined);
+    setBusyId(id);
     try {
-      const submission = await efileTaxReturn(id);
+      const submission = await efileTaxReturn(id, details);
       setEfilingMessage(
         `Ack #${submission.acknowledgementNumber} - ${submission.status}. ${submission.message}`,
       );
+      setEfilingFormFor(undefined);
       load();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'e-Filing submission failed');
+    } finally {
+      setBusyId(undefined);
+    }
+  };
+
+  const handleEfile = (id: number) => {
+    // A real intermediary needs the taxpayer identity for the ITR JSON; the mock provider does not.
+    if (simulatedEfiling) {
+      void submitEfile(id);
+      return;
+    }
+    setEfilingMessage(undefined);
+    setEfilingFormFor(id);
+  };
+
+  const handleRefreshStatus = async (id: number) => {
+    setEfilingMessage(undefined);
+    setError(undefined);
+    setBusyId(id);
+    try {
+      const submission = await refreshEfilingStatus(id);
+      setEfilingMessage(`Ack #${submission.acknowledgementNumber} - ${submission.status}.`);
+      load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not refresh the filing status');
+    } finally {
+      setBusyId(undefined);
+    }
+  };
+
+  const handleEmail = async (id: number) => {
+    setEfilingMessage(undefined);
+    setError(undefined);
+    setBusyId(id);
+    try {
+      const result = await emailTaxReturn(id);
+      setEfilingMessage(result.message);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not send the email');
+    } finally {
+      setBusyId(undefined);
     }
   };
 
@@ -97,6 +163,7 @@ export function SavedReturnsPage({ onBack }: Props) {
                   {r.efilingStatus && (
                     <p className="text-xs text-emerald-700">
                       e-Filed: {r.efilingStatus} (Ack #{r.efilingAckNumber})
+                      {r.efilingProvider ? ` via ${r.efilingProvider}` : ''}
                     </p>
                   )}
                 </div>
@@ -115,11 +182,30 @@ export function SavedReturnsPage({ onBack }: Props) {
                   </a>
                   <button
                     type="button"
+                    onClick={() => void handleEmail(r.id)}
+                    disabled={busyId === r.id}
+                    className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    Email PDF
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => handleEfile(r.id)}
-                    className="rounded-md border border-indigo-300 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+                    disabled={busyId === r.id}
+                    className="rounded-md border border-indigo-300 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50 disabled:opacity-50"
                   >
                     e-File
                   </button>
+                  {r.efilingStatus && (
+                    <button
+                      type="button"
+                      onClick={() => void handleRefreshStatus(r.id)}
+                      disabled={busyId === r.id}
+                      className="rounded-md border border-indigo-300 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50 disabled:opacity-50"
+                    >
+                      Refresh status
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => handleDelete(r.id)}
@@ -129,6 +215,79 @@ export function SavedReturnsPage({ onBack }: Props) {
                   </button>
                 </div>
               </div>
+
+              {efilingFormFor === r.id && (
+                <form
+                  className="mt-4 space-y-3 rounded-md border border-indigo-200 bg-indigo-50/60 p-3"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void submitEfile(r.id, {
+                      ...taxpayer,
+                      pan: taxpayer.pan.trim().toUpperCase(),
+                    });
+                  }}
+                >
+                  <p className="text-xs text-slate-600">
+                    Filing through an authorised intermediary needs the details printed on your PAN
+                    card so the ITR JSON can be generated.
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-xs font-medium text-slate-700">PAN</span>
+                      <input
+                        required
+                        maxLength={10}
+                        value={taxpayer.pan}
+                        onChange={(e) => setTaxpayer((t) => ({ ...t, pan: e.target.value }))}
+                        className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm uppercase shadow-sm"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-medium text-slate-700">Date of birth</span>
+                      <input
+                        required
+                        type="date"
+                        value={taxpayer.dateOfBirth}
+                        onChange={(e) => setTaxpayer((t) => ({ ...t, dateOfBirth: e.target.value }))}
+                        className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-medium text-slate-700">First name</span>
+                      <input
+                        value={taxpayer.firstName ?? ''}
+                        onChange={(e) => setTaxpayer((t) => ({ ...t, firstName: e.target.value }))}
+                        className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-medium text-slate-700">Surname</span>
+                      <input
+                        required
+                        value={taxpayer.lastName}
+                        onChange={(e) => setTaxpayer((t) => ({ ...t, lastName: e.target.value }))}
+                        className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm"
+                      />
+                    </label>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={busyId === r.id}
+                      className="rounded-md bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+                    >
+                      {busyId === r.id ? 'Submitting…' : 'Submit to the e-filing portal'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEfilingFormFor(undefined)}
+                      className="rounded-md border border-slate-300 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
             </li>
           ))}
         </ul>

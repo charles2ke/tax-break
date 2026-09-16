@@ -16,6 +16,7 @@ import { attachUser } from './auth/middleware';
 import { getEffectiveConfig, isKnownAssessmentYear } from './db/configRepository';
 import { adminRouter } from './routes/admin';
 import { authRouter } from './routes/auth';
+import { integrationsRouter } from './routes/integrations';
 import { taxReturnsRouter } from './routes/taxReturns';
 import {
   ValidationError,
@@ -96,6 +97,13 @@ const apiRateLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many requests. Please try again later.' },
 });
+
+const INTEGRATION_ERROR_NAMES = new Set(['EFilingError', 'OAuthError', 'MailError']);
+
+function isIntegrationError(err: Error): err is Error & { status: number } {
+  const status = (err as { status?: unknown }).status;
+  return INTEGRATION_ERROR_NAMES.has(err.name) && typeof status === 'number';
+}
 
 export function createApp() {
   const app = express();
@@ -180,6 +188,7 @@ export function createApp() {
   app.use('/api/auth', authRateLimiter, authRouter);
   app.use('/api/tax-returns', apiRateLimiter, taxReturnsRouter);
   app.use('/api/admin', apiRateLimiter, adminRouter);
+  app.use('/api/integrations', apiRateLimiter, integrationsRouter);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
@@ -188,6 +197,11 @@ export function createApp() {
     }
     if (err.message === 'CSRF token missing' || err.message === 'CSRF token mismatch') {
       return res.status(403).json({ error: err.message });
+    }
+    // Integration failures (e-filing, OAuth, email) carry their own HTTP status and a message
+    // that is safe to surface; their underlying responses are never echoed back.
+    if (isIntegrationError(err)) {
+      return res.status(err.status).json({ error: err.message });
     }
     // eslint-disable-next-line no-console
     console.error(err);
