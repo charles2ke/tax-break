@@ -48,10 +48,15 @@ export function CapitalGainsStatementUpload({ variant, onImport }: Props) {
       }
       const expectedFormat = variant === 'india' ? 'india-broker' : 'us-1099b';
       if (parsed.format !== expectedFormat) {
+        const otherFormatLabel: Record<typeof parsed.format, string> = {
+          'india-broker': 'an Indian broker statement',
+          'us-1099b': 'a US Form 1099-B statement',
+        };
         setError(
-          variant === 'india'
-            ? 'This looks like a US Form 1099-B statement. Upload it in the US section instead.'
-            : 'This looks like an Indian broker statement. Upload it in the India section instead.',
+          `This looks like ${otherFormatLabel[parsed.format] ?? 'an unrecognised statement format'}. ` +
+            (variant === 'india'
+              ? 'Upload it in the US section instead.'
+              : 'Upload it in the India section instead.'),
         );
         return;
       }

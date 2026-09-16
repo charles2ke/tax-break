@@ -35,6 +35,9 @@ export class HttpError extends Error {
 }
 
 const DEFAULT_TIMEOUT_MS = 10_000;
+// A single retry on a transient failure, as documented in the integration contract and README;
+// combined with the 10s per-attempt timeout this bounds a worst-case call to ~20s while still
+// giving external providers one more chance before surfacing an error.
 const DEFAULT_RETRIES = 1;
 const RETRYABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
 const SECRET_KEY_PATTERN =
