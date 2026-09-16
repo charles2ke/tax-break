@@ -230,7 +230,11 @@ export function UsSection({ form, onChange, step }: Props) {
               });
             }}
           />
-          {lossWarning && <p className="text-xs font-medium text-amber-700">{lossWarning}</p>}
+          {lossWarning && (
+            <p role="alert" className="text-xs font-medium text-amber-700">
+              {lossWarning}
+            </p>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <NumberField
               label="Taxable interest ($)"

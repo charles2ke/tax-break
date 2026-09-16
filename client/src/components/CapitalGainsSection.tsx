@@ -62,7 +62,11 @@ export function CapitalGainsSection({ form, onChange }: Props) {
           });
         }}
       />
-      {lossWarning && <p className="text-xs font-medium text-amber-700">{lossWarning}</p>}
+      {lossWarning && (
+        <p role="alert" className="text-xs font-medium text-amber-700">
+          {lossWarning}
+        </p>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         <NumberField
           label="Short-Term Capital Gains - Listed Equity/Equity MF (Sec 111A)"

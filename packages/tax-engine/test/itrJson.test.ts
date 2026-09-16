@@ -134,4 +134,44 @@ describe('generateItrJson', () => {
     expect(() => build({ taxesPaidBreakdown: undefined })).toThrow(ItrJsonError);
     expect(() => build({ taxesPaidBreakdown: { tds: 1000 } })).toThrow(ItrJsonError);
   });
+
+  it('splits the taxes-paid breakdown into the correct ITR categories', () => {
+    const json = build({
+      taxesPaidBreakdown: { tds: 70000, tcs: 5000, advanceTax: 30000, selfAssessmentTax: 15000 },
+    });
+    const result = compareRegimes(INPUT);
+    const liability = Math.round(result[result.recommendedRegime].totalTaxLiability);
+
+    expect(section(json, 'ITR.ITR1.TaxPaid.TaxsPaid')).toMatchObject({
+      TDS: 70000,
+      TCS: 5000,
+      AdvanceTax: 30000,
+      SelfAssessmentTax: 15000,
+      TotalTaxesPaid: 120000,
+    });
+    expect(section(json, 'ITR.ITR1.TaxPaid').BalTaxPayable).toBe(Math.max(liability - 120000, 0));
+  });
+
+  it('reports zero taxes paid when taxAlreadyPaid is 0, without requiring a breakdown', () => {
+    const input = { ...INPUT, taxAlreadyPaid: 0 };
+    const result = compareRegimes(input);
+    const liability = Math.round(result[result.recommendedRegime].totalTaxLiability);
+    const json = generateItrJson({
+      form: 'ITR-1',
+      assessmentYear: 'FY2025-26',
+      input,
+      result,
+      taxpayer: TAXPAYER,
+      createdAt: new Date('2026-07-01T10:00:00Z'),
+    });
+
+    expect(section(json, 'ITR.ITR1.TaxPaid.TaxsPaid')).toMatchObject({
+      TDS: 0,
+      TCS: 0,
+      AdvanceTax: 0,
+      SelfAssessmentTax: 0,
+      TotalTaxesPaid: 0,
+    });
+    expect(section(json, 'ITR.ITR1.TaxPaid').BalTaxPayable).toBe(liability);
+  });
 });

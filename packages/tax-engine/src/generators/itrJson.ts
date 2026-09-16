@@ -156,7 +156,9 @@ function buildTaxPaid(
     const advanceTax = round(taxesPaidBreakdown.advanceTax ?? 0);
     const selfAssessmentTax = round(taxesPaidBreakdown.selfAssessmentTax ?? 0);
     const total = tds + tcs + advanceTax + selfAssessmentTax;
-    if (total !== aggregate) {
+    // Each component is rounded independently, so allow a small tolerance rather than requiring
+    // an exact match against the aggregate (also rounded) to avoid spurious rejections.
+    if (Math.abs(total - aggregate) > 1) {
       throw new ItrJsonError(
         `taxesPaidBreakdown must add up to taxAlreadyPaid (${aggregate}); received ${total}.`,
       );
@@ -284,7 +286,10 @@ export function generateItrJson(options: GenerateItrJsonOptions): Record<string,
 
   const salary = salaryTotals(input);
   const houseProperty = round(
-    breakdown.grossTotalIncome - breakdown.taxableSalaryIncome - otherSourcesTotal(input),
+    breakdown.grossTotalIncome -
+      breakdown.taxableSalaryIncome -
+      otherSourcesTotal(input) -
+      breakdown.capitalGains.otherSTCGAddedToIncome,
   );
   const key = form === 'ITR-1' ? 'ITR1' : 'ITR4';
 

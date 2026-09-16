@@ -280,8 +280,14 @@ export class EriEFilingProvider implements EFilingProvider {
   }
 }
 
+function createProvider(name: string): EFilingProvider {
+  if (name === 'eri') return new EriEFilingProvider();
+  return new MockEFilingProvider();
+}
+
 let cachedProvider: EFilingProvider | undefined;
 let cachedProviderKey: string | undefined;
+const providersByName = new Map<string, EFilingProvider>();
 
 /**
  * Returns the configured e-filing provider. `EFILING_PROVIDER=eri` selects the real ERI/GSP
@@ -291,8 +297,9 @@ let cachedProviderKey: string | undefined;
 export function getEFilingProvider(): EFilingProvider {
   const key = process.env.EFILING_PROVIDER ?? 'mock';
   if (cachedProvider && cachedProviderKey === key) return cachedProvider;
-  cachedProvider = key === 'eri' ? new EriEFilingProvider() : new MockEFilingProvider();
+  cachedProvider = createProvider(key);
   cachedProviderKey = key;
+  providersByName.set(cachedProvider.name, cachedProvider);
   return cachedProvider;
 }
 
@@ -304,13 +311,20 @@ export function getEFilingProvider(): EFilingProvider {
 export function getEFilingProviderByName(name: string): EFilingProvider {
   const current = getEFilingProvider();
   if (current.name === name) return current;
-  if (name === 'mock') return new MockEFilingProvider();
-  if (name === 'eri') return new EriEFilingProvider();
-  throw new EFilingError(`Unknown e-filing provider "${name}".`, 500);
+  if (name !== 'mock' && name !== 'eri') {
+    throw new EFilingError(`Unknown e-filing provider "${name}".`, 500);
+  }
+  let provider = providersByName.get(name);
+  if (!provider) {
+    provider = createProvider(name);
+    providersByName.set(name, provider);
+  }
+  return provider;
 }
 
 /** Test helper: clears the memoised provider so a changed environment is picked up. */
 export function resetEFilingProviderForTests(): void {
   cachedProvider = undefined;
+  providersByName.clear();
   cachedProviderKey = undefined;
 }

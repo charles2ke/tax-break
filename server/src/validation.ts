@@ -411,7 +411,7 @@ function optionalNonNegativeNumber(value: unknown, field: string): number | unde
  */
 export function validateTaxesPaidBreakdown(body: unknown): TaxesPaidBreakdown | undefined {
   if (body === undefined || body === null) return undefined;
-  if (typeof body !== 'object') {
+  if (typeof body !== 'object' || Array.isArray(body)) {
     throw new ValidationError('taxesPaidBreakdown must be an object');
   }
   const details = body as Record<string, unknown>;
