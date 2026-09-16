@@ -80,6 +80,8 @@ const PROVIDERS: Record<OAuthProviderName, OAuthProviderConfig> = {
         headers: authHeaders(accessToken),
         label: 'github user',
       });
+      // Always resolve the email from /user/emails: /user's public `email` field is not
+      // guaranteed to be verified, so it cannot be used as a shortcut here.
       const emails = await httpRequestJson<
         Array<{ email: string; primary: boolean; verified: boolean }>
       >('https://api.github.com/user/emails', {

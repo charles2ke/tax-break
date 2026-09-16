@@ -280,14 +280,19 @@ export class EriEFilingProvider implements EFilingProvider {
   }
 }
 
-function createProvider(name: string): EFilingProvider {
-  if (name === 'eri') return new EriEFilingProvider();
-  return new MockEFilingProvider();
+export type EFilingProviderName = 'mock' | 'eri';
+
+function isEFilingProviderName(name: string): name is EFilingProviderName {
+  return name === 'mock' || name === 'eri';
+}
+
+function createProvider(name: EFilingProviderName): EFilingProvider {
+  return name === 'eri' ? new EriEFilingProvider() : new MockEFilingProvider();
 }
 
 let cachedProvider: EFilingProvider | undefined;
 let cachedProviderKey: string | undefined;
-const providersByName = new Map<string, EFilingProvider>();
+const providersByName = new Map<EFilingProviderName, EFilingProvider>();
 
 /**
  * Returns the configured e-filing provider. `EFILING_PROVIDER=eri` selects the real ERI/GSP
@@ -295,11 +300,12 @@ const providersByName = new Map<string, EFilingProvider>();
  * CI never need credentials.
  */
 export function getEFilingProvider(): EFilingProvider {
-  const key = process.env.EFILING_PROVIDER ?? 'mock';
+  const envValue = process.env.EFILING_PROVIDER ?? 'mock';
+  const key: EFilingProviderName = isEFilingProviderName(envValue) ? envValue : 'mock';
   if (cachedProvider && cachedProviderKey === key) return cachedProvider;
   cachedProvider = createProvider(key);
   cachedProviderKey = key;
-  providersByName.set(cachedProvider.name, cachedProvider);
+  providersByName.set(key, cachedProvider);
   return cachedProvider;
 }
 
@@ -311,7 +317,7 @@ export function getEFilingProvider(): EFilingProvider {
 export function getEFilingProviderByName(name: string): EFilingProvider {
   const current = getEFilingProvider();
   if (current.name === name) return current;
-  if (name !== 'mock' && name !== 'eri') {
+  if (!isEFilingProviderName(name)) {
     throw new EFilingError(`Unknown e-filing provider "${name}".`, 500);
   }
   let provider = providersByName.get(name);

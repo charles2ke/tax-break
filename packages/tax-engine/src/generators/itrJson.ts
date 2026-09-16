@@ -82,6 +82,8 @@ const PAN_PATTERN = /^[A-Z]{5}\d{4}[A-Z]$/;
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const SOFTWARE_NAME = 'Tax Break';
 const SCHEMA_VERSION = 'Ver1.0';
+/** Allowed rounding drift when comparing an independently-rounded breakdown to its aggregate. */
+const ROUNDING_TOLERANCE = 1;
 
 /** Converts `FY2025-26` into the ITD assessment year label `2026`. */
 export function itrAssessmentYear(assessmentYear: AssessmentYear): string {
@@ -158,7 +160,7 @@ function buildTaxPaid(
     const total = tds + tcs + advanceTax + selfAssessmentTax;
     // Each component is rounded independently, so allow a small tolerance rather than requiring
     // an exact match against the aggregate (also rounded) to avoid spurious rejections.
-    if (Math.abs(total - aggregate) > 1) {
+    if (Math.abs(total - aggregate) > ROUNDING_TOLERANCE) {
       throw new ItrJsonError(
         `taxesPaidBreakdown must add up to taxAlreadyPaid (${aggregate}); received ${total}.`,
       );
