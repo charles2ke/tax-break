@@ -76,20 +76,17 @@ const PROVIDERS: Record<OAuthProviderName, OAuthProviderConfig> = {
     clientIdEnv: 'GITHUB_CLIENT_ID',
     clientSecretEnv: 'GITHUB_CLIENT_SECRET',
     async fetchProfile(accessToken: string): Promise<OAuthProfile> {
-      const user = await httpRequestJson<{ id?: number; email?: string | null }>(
-        'https://api.github.com/user',
-        { headers: authHeaders(accessToken), label: 'github user' },
-      );
-      let email = user.email ?? undefined;
-      if (!email) {
-        const emails = await httpRequestJson<
-          Array<{ email: string; primary: boolean; verified: boolean }>
-        >('https://api.github.com/user/emails', {
-          headers: authHeaders(accessToken),
-          label: 'github user emails',
-        });
-        email = emails.find((entry) => entry.primary && entry.verified)?.email;
-      }
+      const user = await httpRequestJson<{ id?: number }>('https://api.github.com/user', {
+        headers: authHeaders(accessToken),
+        label: 'github user',
+      });
+      const emails = await httpRequestJson<
+        Array<{ email: string; primary: boolean; verified: boolean }>
+      >('https://api.github.com/user/emails', {
+        headers: authHeaders(accessToken),
+        label: 'github user emails',
+      });
+      const email = emails.find((entry) => entry.primary && entry.verified)?.email;
       if (!email) {
         throw new OAuthError('GitHub did not return a verified email address.');
       }
@@ -113,6 +110,7 @@ function credentials(config: OAuthProviderConfig): { clientId: string; clientSec
 
 /** Lists the providers that are fully configured, for the sign-in page to render buttons. */
 export function listEnabledOAuthProviders(): Array<{ name: OAuthProviderName; label: string }> {
+  if (!process.env.OAUTH_REDIRECT_BASE_URL) return [];
   return Object.values(PROVIDERS)
     .filter((config) => process.env[config.clientIdEnv] && process.env[config.clientSecretEnv])
     .map((config) => ({ name: config.name, label: config.label }));

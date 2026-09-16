@@ -57,8 +57,22 @@ export interface GenerateItrJsonOptions {
   /** Regime the return is filed under. Defaults to the recommended regime. */
   regime?: Regime;
   taxpayer: ItrTaxpayerDetails;
+  /**
+   * Breakdown of `input.taxAlreadyPaid` across the ITR's payment categories. `taxAlreadyPaid` is
+   * a single aggregate used for the tax estimate, but the filed return records each category
+   * separately, so this breakdown is required whenever tax has already been paid.
+   */
+  taxesPaidBreakdown?: TaxesPaidBreakdown;
   /** Overrides the creation timestamp; used by tests to keep the output deterministic. */
   createdAt?: Date;
+}
+
+/** Breakdown of tax already paid across the categories the ITR schema tracks separately. */
+export interface TaxesPaidBreakdown {
+  tds?: number;
+  tcs?: number;
+  advanceTax?: number;
+  selfAssessmentTax?: number;
 }
 
 export class ItrJsonError extends Error {}
@@ -123,18 +137,51 @@ function buildChapterVIA(breakdown: TaxBreakdown) {
   };
 }
 
-function buildTaxPaid(breakdown: TaxBreakdown, input: TaxCalculationInput) {
-  const taxesPaid = round(input.taxAlreadyPaid ?? 0);
-  const balance = round(breakdown.totalTaxLiability) - taxesPaid;
+function buildTaxPaid(
+  breakdown: TaxBreakdown,
+  input: TaxCalculationInput,
+  taxesPaidBreakdown: TaxesPaidBreakdown | undefined,
+) {
+  const aggregate = round(input.taxAlreadyPaid ?? 0);
+  if (aggregate > 0) {
+    if (!taxesPaidBreakdown) {
+      throw new ItrJsonError(
+        'taxesPaidBreakdown (TDS, TCS, advance tax, self-assessment tax) is required to file a ' +
+          'return when tax has already been paid; it cannot be inferred from the aggregate ' +
+          'taxAlreadyPaid figure used for the estimate.',
+      );
+    }
+    const tds = round(taxesPaidBreakdown.tds ?? 0);
+    const tcs = round(taxesPaidBreakdown.tcs ?? 0);
+    const advanceTax = round(taxesPaidBreakdown.advanceTax ?? 0);
+    const selfAssessmentTax = round(taxesPaidBreakdown.selfAssessmentTax ?? 0);
+    const total = tds + tcs + advanceTax + selfAssessmentTax;
+    if (total !== aggregate) {
+      throw new ItrJsonError(
+        `taxesPaidBreakdown must add up to taxAlreadyPaid (${aggregate}); received ${total}.`,
+      );
+    }
+    const balance = round(breakdown.totalTaxLiability) - total;
+    return {
+      TaxsPaid: {
+        TDS: tds,
+        AdvanceTax: advanceTax,
+        SelfAssessmentTax: selfAssessmentTax,
+        TCS: tcs,
+        TotalTaxesPaid: total,
+      },
+      BalTaxPayable: Math.max(balance, 0),
+    };
+  }
   return {
     TaxsPaid: {
-      TDS: taxesPaid,
+      TDS: 0,
       AdvanceTax: 0,
       SelfAssessmentTax: 0,
       TCS: 0,
-      TotalTaxesPaid: taxesPaid,
+      TotalTaxesPaid: 0,
     },
-    BalTaxPayable: Math.max(balance, 0),
+    BalTaxPayable: Math.max(round(breakdown.totalTaxLiability), 0),
   };
 }
 
@@ -236,7 +283,9 @@ export function generateItrJson(options: GenerateItrJsonOptions): Record<string,
   const normalisedTaxpayer: ItrTaxpayerDetails = { ...taxpayer, pan };
 
   const salary = salaryTotals(input);
-  const houseProperty = round(breakdown.grossTotalIncome - salary.gross - otherSourcesTotal(input));
+  const houseProperty = round(
+    breakdown.grossTotalIncome - breakdown.taxableSalaryIncome - otherSourcesTotal(input),
+  );
   const key = form === 'ITR-1' ? 'ITR1' : 'ITR4';
 
   const body = {
@@ -264,9 +313,10 @@ export function generateItrJson(options: GenerateItrJsonOptions): Record<string,
       GrossSalary: round(salary.gross),
       Salary: round(salary.basic + salary.allowances),
       PerquisitesValue: salary.perquisites,
+      AllwncExemptUs10: round(breakdown.hraExemption),
       DeductionUnderSection16ia: round(breakdown.deductionsBreakdown.standardDeduction),
       IncomeFromSal: Math.max(
-        round(salary.gross - breakdown.deductionsBreakdown.standardDeduction),
+        round(breakdown.taxableSalaryIncome - breakdown.deductionsBreakdown.standardDeduction),
         0,
       ),
       TypeOfHP: input.houseProperty?.type === 'let-out' ? 'LOP' : 'SOP',
@@ -287,7 +337,7 @@ export function generateItrJson(options: GenerateItrJsonOptions): Record<string,
       TotalIntrstPay: 0,
       TotalTaxPlusIntrstPay: round(breakdown.totalTaxLiability),
     },
-    TaxPaid: buildTaxPaid(breakdown, input),
+    TaxPaid: buildTaxPaid(breakdown, input, options.taxesPaidBreakdown),
     Refund: buildRefund(normalisedTaxpayer, breakdown, input),
     Verification: buildVerification(normalisedTaxpayer, createdAt),
   };

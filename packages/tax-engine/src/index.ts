@@ -32,4 +32,8 @@ export type {
   UsCapitalGainsTotals,
 } from './parsers/capitalGainsStatement';
 export { generateItrJson, itrAssessmentYear, ItrJsonError } from './generators/itrJson';
-export type { GenerateItrJsonOptions, ItrTaxpayerDetails } from './generators/itrJson';
+export type {
+  GenerateItrJsonOptions,
+  ItrTaxpayerDetails,
+  TaxesPaidBreakdown,
+} from './generators/itrJson';

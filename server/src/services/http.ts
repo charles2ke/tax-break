@@ -35,7 +35,7 @@ export class HttpError extends Error {
 }
 
 const DEFAULT_TIMEOUT_MS = 10_000;
-const DEFAULT_RETRIES = 2;
+const DEFAULT_RETRIES = 1;
 const RETRYABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
 const SECRET_KEY_PATTERN =
   /(pass(word)?|secret|token|api[-_]?key|client[-_]?secret|authorization|refresh|assertion|otp|aadhaar|pan)/i;

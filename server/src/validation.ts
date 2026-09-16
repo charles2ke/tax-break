@@ -7,6 +7,7 @@ import {
   listAssessmentYears,
   listUsStates,
   TaxCalculationInput,
+  TaxesPaidBreakdown,
 } from '@tax-break/tax-engine';
 
 const VALID_AGE_CATEGORIES: AgeCategory[] = ['below60', '60to80', 'above80'];
@@ -324,6 +325,16 @@ export function validateItrRecommenderInput(body: unknown): ItrRecommenderInput 
 const PAN_PATTERN = /^[A-Z]{5}\d{4}[A-Z]$/;
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+/** Validates the shape and that the date round-trips, rejecting values like 1990-02-31. */
+function isValidIsoDate(value: string): boolean {
+  if (!ISO_DATE_PATTERN.test(value)) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  );
+}
+
 function optionalString(value: unknown, field: string, maxLength = 120): string | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   if (typeof value !== 'string' || value.length > maxLength) {
@@ -351,8 +362,8 @@ export function validateItrTaxpayerDetails(body: unknown): ItrTaxpayerDetails {
     throw new ValidationError('taxpayer.lastName is required');
   }
   const dateOfBirth = optionalString(details.dateOfBirth, 'taxpayer.dateOfBirth', 10);
-  if (!dateOfBirth || !ISO_DATE_PATTERN.test(dateOfBirth)) {
-    throw new ValidationError('taxpayer.dateOfBirth must be a date in YYYY-MM-DD form');
+  if (!dateOfBirth || !isValidIsoDate(dateOfBirth)) {
+    throw new ValidationError('taxpayer.dateOfBirth must be a valid date in YYYY-MM-DD form');
   }
 
   const address = details.address;
@@ -383,5 +394,34 @@ export function validateItrTaxpayerDetails(body: unknown): ItrTaxpayerDetails {
           bankName: optionalString(bankAccount.bankName, 'taxpayer.bankAccount.bankName'),
         }
       : undefined,
+  };
+}
+
+function optionalNonNegativeNumber(value: unknown, field: string): number | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    throw new ValidationError(`${field} must be a non-negative number`);
+  }
+  return value;
+}
+
+/**
+ * Validates the optional per-category breakdown of tax already paid (TDS, TCS, advance tax,
+ * self-assessment tax), required by the ITR JSON generator when tax has already been paid.
+ */
+export function validateTaxesPaidBreakdown(body: unknown): TaxesPaidBreakdown | undefined {
+  if (body === undefined || body === null) return undefined;
+  if (typeof body !== 'object') {
+    throw new ValidationError('taxesPaidBreakdown must be an object');
+  }
+  const details = body as Record<string, unknown>;
+  return {
+    tds: optionalNonNegativeNumber(details.tds, 'taxesPaidBreakdown.tds'),
+    tcs: optionalNonNegativeNumber(details.tcs, 'taxesPaidBreakdown.tcs'),
+    advanceTax: optionalNonNegativeNumber(details.advanceTax, 'taxesPaidBreakdown.advanceTax'),
+    selfAssessmentTax: optionalNonNegativeNumber(
+      details.selfAssessmentTax,
+      'taxesPaidBreakdown.selfAssessmentTax',
+    ),
   };
 }

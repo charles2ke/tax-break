@@ -46,6 +46,15 @@ export function CapitalGainsStatementUpload({ variant, onImport }: Props) {
         setError('No closed positions were found in this file.');
         return;
       }
+      const expectedFormat = variant === 'india' ? 'india-broker' : 'us-1099b';
+      if (parsed.format !== expectedFormat) {
+        setError(
+          variant === 'india'
+            ? 'This looks like a US Form 1099-B statement. Upload it in the US section instead.'
+            : 'This looks like an Indian broker statement. Upload it in the India section instead.',
+        );
+        return;
+      }
       onImport(parsed);
       setSummary(parsed);
     } catch (err) {

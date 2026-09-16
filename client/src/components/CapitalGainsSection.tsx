@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { getConfig } from '@tax-break/tax-engine';
 import type { FormState } from '../formTypes';
 import { CapitalGainsStatementUpload } from './CapitalGainsStatementUpload';
@@ -24,6 +25,7 @@ export function CapitalGainsSection({ form, onChange }: Props) {
   const capitalGains = form.capitalGains;
   const config = getConfig(form.assessmentYear);
   const rates = config.capitalGains;
+  const [lossWarning, setLossWarning] = useState<string | null>(null);
 
   const update = (patch: Partial<FormState['capitalGains']>) =>
     onChange((f) => ({ ...f, capitalGains: { ...f.capitalGains, ...patch } }));
@@ -37,15 +39,30 @@ export function CapitalGainsSection({ form, onChange }: Props) {
       </p>
       <CapitalGainsStatementUpload
         variant="india"
-        onImport={(summary) =>
+        onImport={(summary) => {
+          const buckets = summary.india;
+          const hasLoss =
+            buckets.equitySTCG < 0 ||
+            buckets.equityLTCG < 0 ||
+            buckets.otherSTCG < 0 ||
+            buckets.otherLTCG < 0;
+          setLossWarning(
+            hasLoss
+              ? 'The statement includes a net loss in at least one category. This estimator does ' +
+                  'not model loss set-off or carry-forward, so losses are not applied and the ' +
+                  'affected category has been set to ₹0 — adjust manually if you want to model a ' +
+                  'partial set-off.'
+              : null,
+          );
           update({
-            equitySTCG: Math.max(summary.india.equitySTCG, 0),
-            equityLTCG: Math.max(summary.india.equityLTCG, 0),
-            otherSTCG: Math.max(summary.india.otherSTCG, 0),
-            otherLTCG: Math.max(summary.india.otherLTCG, 0),
-          })
-        }
+            equitySTCG: Math.max(buckets.equitySTCG, 0),
+            equityLTCG: Math.max(buckets.equityLTCG, 0),
+            otherSTCG: Math.max(buckets.otherSTCG, 0),
+            otherLTCG: Math.max(buckets.otherLTCG, 0),
+          });
+        }}
       />
+      {lossWarning && <p className="text-xs font-medium text-amber-700">{lossWarning}</p>}
       <div className="grid gap-4 sm:grid-cols-2">
         <NumberField
           label="Short-Term Capital Gains - Listed Equity/Equity MF (Sec 111A)"

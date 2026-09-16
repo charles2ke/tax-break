@@ -296,6 +296,19 @@ export function getEFilingProvider(): EFilingProvider {
   return cachedProvider;
 }
 
+/**
+ * Resolves the provider that accepted a specific submission, by name, regardless of which
+ * provider is currently selected by the environment. Used when refreshing the status of a saved
+ * return so a configuration/deployment change never queries the wrong provider.
+ */
+export function getEFilingProviderByName(name: string): EFilingProvider {
+  const current = getEFilingProvider();
+  if (current.name === name) return current;
+  if (name === 'mock') return new MockEFilingProvider();
+  if (name === 'eri') return new EriEFilingProvider();
+  throw new EFilingError(`Unknown e-filing provider "${name}".`, 500);
+}
+
 /** Test helper: clears the memoised provider so a changed environment is picked up. */
 export function resetEFilingProviderForTests(): void {
   cachedProvider = undefined;

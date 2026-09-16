@@ -35,6 +35,7 @@ function build(overrides: Partial<Parameters<typeof generateItrJson>[0]> = {}) {
     input: INPUT,
     result,
     taxpayer: TAXPAYER,
+    taxesPaidBreakdown: { tds: 120000 },
     createdAt: new Date('2026-07-01T10:00:00Z'),
     ...overrides,
   });
@@ -127,5 +128,10 @@ describe('generateItrJson', () => {
   it('rejects unsupported forms and invalid PANs', () => {
     expect(() => build({ form: 'ITR-2' })).toThrow(ItrJsonError);
     expect(() => build({ taxpayer: { ...TAXPAYER, pan: 'NOTAPAN' } })).toThrow(ItrJsonError);
+  });
+
+  it('requires a taxes-paid breakdown that matches taxAlreadyPaid', () => {
+    expect(() => build({ taxesPaidBreakdown: undefined })).toThrow(ItrJsonError);
+    expect(() => build({ taxesPaidBreakdown: { tds: 1000 } })).toThrow(ItrJsonError);
   });
 });

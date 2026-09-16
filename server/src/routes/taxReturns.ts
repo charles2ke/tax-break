@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import type { ItrForm, RegimeComparisonResult, TaxCalculationInput } from '@tax-break/tax-engine';
-import { generateItrJson, recommendItrForm } from '@tax-break/tax-engine';
+import { generateItrJson, ItrJsonError, recommendItrForm } from '@tax-break/tax-engine';
 import { requireAuth } from '../auth/middleware';
 import {
   createTaxReturn,
@@ -14,9 +14,9 @@ import {
   streamTaxReturnExcel,
   streamTaxReturnPdf,
 } from '../services/export';
-import { EFilingError, getEFilingProvider } from '../services/efilingProvider';
+import { EFilingError, getEFilingProvider, getEFilingProviderByName } from '../services/efilingProvider';
 import { getMailProvider } from '../services/mailProvider';
-import { ValidationError, validateItrTaxpayerDetails } from '../validation';
+import { ValidationError, validateItrTaxpayerDetails, validateTaxesPaidBreakdown } from '../validation';
 
 export const taxReturnsRouter = Router();
 
@@ -127,13 +127,21 @@ taxReturnsRouter.post('/:id/efile', async (req, res, next) => {
         totalIncome: result[result.recommendedRegime].grossTotalIncome,
         isResidentIndividual: true,
       }).recommendedForm;
-      itrJson = generateItrJson({
-        form: itrForm,
-        assessmentYear: input.assessmentYear,
-        input,
-        result,
-        taxpayer,
-      });
+      try {
+        itrJson = generateItrJson({
+          form: itrForm,
+          assessmentYear: input.assessmentYear,
+          input,
+          result,
+          taxpayer,
+          taxesPaidBreakdown: validateTaxesPaidBreakdown(req.body?.taxesPaidBreakdown),
+        });
+      } catch (err) {
+        if (err instanceof ItrJsonError) {
+          throw new EFilingError(err.message, 400);
+        }
+        throw err;
+      }
     } else if (!provider.simulated) {
       throw new EFilingError(
         'Filing through an e-filing intermediary requires your PAN, name and date of birth.',
@@ -172,7 +180,10 @@ taxReturnsRouter.get('/:id/efile-status', async (req, res, next) => {
       res.status(404).json({ error: 'This return has not been submitted for e-filing yet.' });
       return;
     }
-    const submission = await getEFilingProvider().getStatus(record.efiling_ack_number);
+    const provider = record.efiling_provider
+      ? getEFilingProviderByName(record.efiling_provider)
+      : getEFilingProvider();
+    const submission = await provider.getStatus(record.efiling_ack_number);
     updateEfilingStatus(
       record.id,
       submission.status,

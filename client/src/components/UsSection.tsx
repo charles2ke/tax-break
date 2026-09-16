@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { UsFilingStatus, UsState, UsTaxCalculationInput } from '@tax-break/tax-engine';
 import { listUsStates } from '@tax-break/tax-engine';
 import { CapitalGainsStatementUpload } from './CapitalGainsStatementUpload';
@@ -92,6 +93,7 @@ interface Props {
 export function UsSection({ form, onChange, step }: Props) {
   const update = (patch: Partial<UsFormState>) => onChange((f) => ({ ...f, ...patch }));
   const show = (index: number) => step === undefined || step === index;
+  const [lossWarning, setLossWarning] = useState<string | null>(null);
 
   return (
     <div className="space-y-10">
@@ -212,13 +214,23 @@ export function UsSection({ form, onChange, step }: Props) {
           </p>
           <CapitalGainsStatementUpload
             variant="us"
-            onImport={(summary) =>
+            onImport={(summary) => {
+              const hasLoss = summary.us.shortTermGains < 0 || summary.us.longTermGains < 0;
+              setLossWarning(
+                hasLoss
+                  ? 'The statement includes a net short- or long-term capital loss. This ' +
+                      'estimator does not model capital loss deductions or carryover, so the ' +
+                      'loss is not applied and the affected total has been set to $0 — adjust ' +
+                      'manually if you want to model the $3,000 annual loss deduction.'
+                  : null,
+              );
               update({
-                shortTermCapitalGains: summary.us.shortTermGains,
-                longTermCapitalGains: summary.us.longTermGains,
-              })
-            }
+                shortTermCapitalGains: Math.max(summary.us.shortTermGains, 0),
+                longTermCapitalGains: Math.max(summary.us.longTermGains, 0),
+              });
+            }}
           />
+          {lossWarning && <p className="text-xs font-medium text-amber-700">{lossWarning}</p>}
           <div className="grid gap-4 sm:grid-cols-2">
             <NumberField
               label="Taxable interest ($)"

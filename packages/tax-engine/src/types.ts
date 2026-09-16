@@ -743,6 +743,10 @@ export interface TaxBreakdown {
   capitalGains: CapitalGainsBreakdown;
   totalTaxLiability: number;
   effectiveTaxRate: number;
+  /** Salary income after the Section 10(13A) HRA exemption (old regime only), before Chapter VI-A deductions. */
+  taxableSalaryIncome: number;
+  /** HRA exempt under Section 10(13A); always 0 under the new regime. */
+  hraExemption: number;
 }
 
 export interface RegimeComparisonResult {
