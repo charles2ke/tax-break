@@ -319,7 +319,12 @@ export function getEFilingProvider(): EFilingProvider {
  */
 export function getEFilingProviderByName(name: string): EFilingProvider {
   if (!isEFilingProviderName(name)) {
-    throw new EFilingError(`Unknown e-filing provider "${name}".`, 500);
+    throw new EFilingError(
+      `This return was filed with e-filing provider "${name}", which is not a supported ` +
+        'provider (expected "mock" or "eri"). The saved submission references a provider that ' +
+        'is no longer configured or recognised.',
+      500,
+    );
   }
   return getOrCreateProvider(name);
 }

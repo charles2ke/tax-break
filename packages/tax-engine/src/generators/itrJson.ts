@@ -84,10 +84,11 @@ const SOFTWARE_NAME = 'Tax Break';
 const SCHEMA_VERSION = 'Ver1.0';
 /**
  * Allowed rounding drift when comparing an independently-rounded taxesPaidBreakdown to the
- * rounded aggregate: each of the four components can drift by up to 0.5 from rounding, and the
- * aggregate itself can drift by up to 0.5, for a worst case of ~2.
+ * rounded aggregate: each of the four components can drift by up to 0.5 from rounding (2.0
+ * total), and the aggregate itself can drift by up to 0.5, for a worst case of 2.5 — rounded up
+ * to the next whole unit since both sides being compared are integers.
  */
-const ROUNDING_TOLERANCE = 2;
+const ROUNDING_TOLERANCE = 3;
 
 /** Converts `FY2025-26` into the ITD assessment year label `2026`. */
 export function itrAssessmentYear(assessmentYear: AssessmentYear): string {
