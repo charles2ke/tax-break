@@ -61,7 +61,7 @@ const PROVIDERS: Record<OAuthProviderName, OAuthProviderConfig> = {
         headers: authHeaders(accessToken),
         label: 'google userinfo',
       });
-      if (!profile.email || profile.email_verified === false) {
+      if (!profile.email || profile.email_verified !== true) {
         throw new OAuthError('Google did not return a verified email address.');
       }
       return { email: profile.email, subject: profile.sub ?? profile.email };

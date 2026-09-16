@@ -216,6 +216,9 @@ export class EriEFilingProvider implements EFilingProvider {
             itr: payload.itrJson,
             clientReference: String(payload.taxReturnId),
           },
+          // Filing submission is not idempotent: if the intermediary accepts it but the
+          // response is lost, a retry could file the same return twice. Fail fast instead.
+          retries: 0,
           label: 'eri submit endpoint',
         },
       );

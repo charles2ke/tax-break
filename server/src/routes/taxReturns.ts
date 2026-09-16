@@ -101,6 +101,14 @@ taxReturnsRouter.post('/:id/efile', async (req, res, next) => {
       res.status(404).json({ error: 'Tax return not found' });
       return;
     }
+    if (record.efiling_ack_number && record.efiling_status !== 'rejected') {
+      throw new EFilingError(
+        'This return has already been submitted for e-filing ' +
+          `(acknowledgement ${record.efiling_ack_number}). Check its status instead of ` +
+          'resubmitting.',
+        409,
+      );
+    }
     const provider = getEFilingProvider();
     const input = JSON.parse(record.input_json) as TaxCalculationInput;
     const result = JSON.parse(record.result_json) as RegimeComparisonResult;
@@ -112,12 +120,12 @@ taxReturnsRouter.post('/:id/efile', async (req, res, next) => {
     let itrJson: Record<string, unknown> | undefined;
     if (taxpayer) {
       itrForm = recommendItrForm({
+        ...(input.otherIncomeSources ?? {}),
         hasSalaryIncome: Boolean(input.salary),
         hasSingleHouseProperty: Boolean(input.houseProperty),
         hasCapitalGains: hasCapitalGains(input),
         totalIncome: result[result.recommendedRegime].grossTotalIncome,
         isResidentIndividual: true,
-        ...(input.otherIncomeSources ?? {}),
       }).recommendedForm;
       itrJson = generateItrJson({
         form: itrForm,
