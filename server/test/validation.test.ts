@@ -1,5 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { ValidationError, validateTaxesPaidBreakdown } from '../src/validation';
+import {
+  ValidationError,
+  validateItrTaxpayerDetails,
+  validateTaxesPaidBreakdown,
+} from '../src/validation';
+
+function baseTaxpayer(overrides: Record<string, unknown> = {}) {
+  return {
+    pan: 'ABCDE1234F',
+    lastName: 'Doe',
+    dateOfBirth: '1990-05-15',
+    ...overrides,
+  };
+}
 
 describe('validateTaxesPaidBreakdown', () => {
   it('returns undefined when no breakdown is provided', () => {
@@ -56,5 +69,23 @@ describe('validateTaxesPaidBreakdown', () => {
       advanceTax: undefined,
       selfAssessmentTax: undefined,
     });
+  });
+});
+
+describe('validateItrTaxpayerDetails', () => {
+  it('accepts a valid date of birth', () => {
+    expect(validateItrTaxpayerDetails(baseTaxpayer()).dateOfBirth).toBe('1990-05-15');
+  });
+
+  it('rejects a calendar date that does not exist', () => {
+    expect(() =>
+      validateItrTaxpayerDetails(baseTaxpayer({ dateOfBirth: '1990-02-31' })),
+    ).toThrow(ValidationError);
+  });
+
+  it('rejects an out-of-range month/day', () => {
+    expect(() =>
+      validateItrTaxpayerDetails(baseTaxpayer({ dateOfBirth: '1990-99-99' })),
+    ).toThrow(ValidationError);
   });
 });

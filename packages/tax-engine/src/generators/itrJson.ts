@@ -145,21 +145,22 @@ function buildTaxPaid(
   taxesPaidBreakdown: TaxesPaidBreakdown | undefined,
 ) {
   const aggregate = round(input.taxAlreadyPaid ?? 0);
-  if (aggregate > 0) {
-    if (!taxesPaidBreakdown) {
-      throw new ItrJsonError(
-        'taxesPaidBreakdown (TDS, TCS, advance tax, self-assessment tax) is required to file a ' +
-          'return when tax has already been paid; it cannot be inferred from the aggregate ' +
-          'taxAlreadyPaid figure used for the estimate.',
-      );
-    }
+  if (aggregate > 0 && !taxesPaidBreakdown) {
+    throw new ItrJsonError(
+      'taxesPaidBreakdown (TDS, TCS, advance tax, self-assessment tax) is required to file a ' +
+        'return when tax has already been paid; it cannot be inferred from the aggregate ' +
+        'taxAlreadyPaid figure used for the estimate.',
+    );
+  }
+  if (taxesPaidBreakdown) {
     const tds = round(taxesPaidBreakdown.tds ?? 0);
     const tcs = round(taxesPaidBreakdown.tcs ?? 0);
     const advanceTax = round(taxesPaidBreakdown.advanceTax ?? 0);
     const selfAssessmentTax = round(taxesPaidBreakdown.selfAssessmentTax ?? 0);
     const total = tds + tcs + advanceTax + selfAssessmentTax;
     // Each component is rounded independently, so allow a small tolerance rather than requiring
-    // an exact match against the aggregate (also rounded) to avoid spurious rejections.
+    // an exact match against the aggregate (also rounded) to avoid spurious rejections. This
+    // applies even when aggregate is 0: a non-empty breakdown must not be silently discarded.
     if (Math.abs(total - aggregate) > ROUNDING_TOLERANCE) {
       throw new ItrJsonError(
         `taxesPaidBreakdown must add up to taxAlreadyPaid (${aggregate}) within ` +
