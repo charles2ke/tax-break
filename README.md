@@ -158,7 +158,7 @@ later by a mobile app or any other consumer, without duplicating tax logic.
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 22+ (required by `better-sqlite3` 13)
 - npm 10+
 
 ### Install
