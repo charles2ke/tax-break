@@ -162,7 +162,8 @@ function buildTaxPaid(
     // an exact match against the aggregate (also rounded) to avoid spurious rejections.
     if (Math.abs(total - aggregate) > ROUNDING_TOLERANCE) {
       throw new ItrJsonError(
-        `taxesPaidBreakdown must add up to taxAlreadyPaid (${aggregate}); received ${total}.`,
+        `taxesPaidBreakdown must add up to taxAlreadyPaid (${aggregate}) within ` +
+          `±${ROUNDING_TOLERANCE}; received ${total}.`,
       );
     }
     const balance = round(breakdown.totalTaxLiability) - total;

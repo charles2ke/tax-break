@@ -290,9 +290,16 @@ function createProvider(name: EFilingProviderName): EFilingProvider {
   return name === 'eri' ? new EriEFilingProvider() : new MockEFilingProvider();
 }
 
-let cachedProvider: EFilingProvider | undefined;
-let cachedProviderKey: string | undefined;
 const providersByName = new Map<EFilingProviderName, EFilingProvider>();
+
+function getOrCreateProvider(name: EFilingProviderName): EFilingProvider {
+  let provider = providersByName.get(name);
+  if (!provider) {
+    provider = createProvider(name);
+    providersByName.set(name, provider);
+  }
+  return provider;
+}
 
 /**
  * Returns the configured e-filing provider. `EFILING_PROVIDER=eri` selects the real ERI/GSP
@@ -302,11 +309,7 @@ const providersByName = new Map<EFilingProviderName, EFilingProvider>();
 export function getEFilingProvider(): EFilingProvider {
   const envValue = process.env.EFILING_PROVIDER ?? 'mock';
   const key: EFilingProviderName = isEFilingProviderName(envValue) ? envValue : 'mock';
-  if (cachedProvider && cachedProviderKey === key) return cachedProvider;
-  cachedProvider = createProvider(key);
-  cachedProviderKey = key;
-  providersByName.set(key, cachedProvider);
-  return cachedProvider;
+  return getOrCreateProvider(key);
 }
 
 /**
@@ -315,22 +318,13 @@ export function getEFilingProvider(): EFilingProvider {
  * return so a configuration/deployment change never queries the wrong provider.
  */
 export function getEFilingProviderByName(name: string): EFilingProvider {
-  const current = getEFilingProvider();
-  if (current.name === name) return current;
   if (!isEFilingProviderName(name)) {
     throw new EFilingError(`Unknown e-filing provider "${name}".`, 500);
   }
-  let provider = providersByName.get(name);
-  if (!provider) {
-    provider = createProvider(name);
-    providersByName.set(name, provider);
-  }
-  return provider;
+  return getOrCreateProvider(name);
 }
 
 /** Test helper: clears the memoised provider so a changed environment is picked up. */
 export function resetEFilingProviderForTests(): void {
-  cachedProvider = undefined;
   providersByName.clear();
-  cachedProviderKey = undefined;
 }
