@@ -9,7 +9,12 @@ import type {
   RegimeComparisonResult,
   TaxCalculationInput,
 } from '@tax-break/tax-engine';
-import { calculateInternationalTax, compareRegimes } from '@tax-break/tax-engine';
+import {
+  calculateAdvanceTax as calculateAdvanceTaxLocally,
+  calculateInternationalTax,
+  compareRegimes,
+  recommendItrForm,
+} from '@tax-break/tax-engine';
 
 export class ApiError extends Error {
   status?: number;
@@ -85,16 +90,42 @@ export async function calculateAdvanceTax(
   taxAlreadyPaid: number,
   assessmentYear: AssessmentYear,
 ): Promise<AdvanceTaxResult> {
-  return request('/api/advance-tax', {
-    method: 'POST',
-    body: JSON.stringify({ totalTaxLiability, taxAlreadyPaid, assessmentYear }),
-  });
+  if (import.meta.env.VITE_CALCULATION_MODE === 'local') {
+    return calculateAdvanceTaxLocally(totalTaxLiability, taxAlreadyPaid, assessmentYear);
+  }
+
+  try {
+    return await request<AdvanceTaxResult>('/api/advance-tax', {
+      method: 'POST',
+      body: JSON.stringify({ totalTaxLiability, taxAlreadyPaid, assessmentYear }),
+    });
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.status === 404) {
+      // Offline or static hosting without a backend: compute in the browser instead.
+      return calculateAdvanceTaxLocally(totalTaxLiability, taxAlreadyPaid, assessmentYear);
+    }
+    throw error;
+  }
 }
 
 export async function getItrRecommendation(
   input: ItrRecommenderInput,
 ): Promise<ItrRecommendation> {
-  return request('/api/itr-recommendation', { method: 'POST', body: JSON.stringify(input) });
+  if (import.meta.env.VITE_CALCULATION_MODE === 'local') {
+    return recommendItrForm(input);
+  }
+
+  try {
+    return await request<ItrRecommendation>('/api/itr-recommendation', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.status === 404) {
+      return recommendItrForm(input);
+    }
+    throw error;
+  }
 }
 
 // --- Auth ---
