@@ -15,9 +15,9 @@ estimates for Ireland, the Netherlands, the UK, the US, and Singapore.
 ## Screenshots
 
 The screenshots below were captured from a local run of the client against the API server, using
-sample figures for FY 2025-26. The advance tax, ITR recommendation, save/export and e-filing
-features need the backend API, so they are not available on the GitHub Pages demo, which runs the
-tax engine directly in the browser.
+sample figures for FY 2025-26. The GitHub Pages demo runs the tax engine directly in the browser,
+so the tax comparison, advance tax schedule and ITR recommendation are all available there. The
+save/export and e-filing features need the backend API, so they are not available on the demo.
 
 ### Home page
 
